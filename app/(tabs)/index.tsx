@@ -1,98 +1,181 @@
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
+import { SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { Button } from '@/components/common/Button';
+import { Card } from '@/components/common/Card';
+import { Header } from '@/components/common/Header';
+import { AppColors, AppRadius, AppSpacing } from '@/constants/Colors';
+import { profile } from '@/constants/ProfileData';
+
+type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
+
+const stockTotal = profile.projects.reduce((total, product) => total + product.stock, 0);
+const lowStockTotal = profile.projects.filter((product) => product.stock <= 5).length;
+
+const metrics: { label: string; value: string; detail: string; icon: IconName; tone: string; soft: string }[] = [
+  { label: 'สินค้าทั้งหมด', value: String(profile.projects.length), detail: 'รายการในแค็ตตาล็อก', icon: 'cards-outline', tone: '#2563EB', soft: '#EAF1FF' },
+  { label: 'สต็อกคงเหลือ', value: String(stockTotal), detail: 'ใบพร้อมจำหน่าย', icon: 'archive-outline', tone: '#087F8C', soft: '#E7F8F8' },
+  { label: 'สต็อกใกล้หมด', value: String(lowStockTotal), detail: 'ควรเติมสินค้า', icon: 'alert-circle-outline', tone: '#C56B16', soft: '#FFF4E5' },
+  { label: 'หมวดหมู่', value: String(profile.skills.length), detail: 'กลุ่มสินค้า', icon: 'shape-outline', tone: '#B33965', soft: '#FCECF2' },
+];
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const router = useRouter();
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  return (
+    <SafeAreaView style={styles.screen}>
+      <StatusBar barStyle="dark-content" backgroundColor={AppColors.background} />
+      <Header title="ภาพรวมร้าน" searchPlaceholder="ค้นหาการ์ดหรือสินค้า..." actionLabel="+ เพิ่ม" actionHref="/add" />
+
+      <ScrollView style={styles.scroller} contentContainerStyle={styles.content}>
+        <View style={styles.pageHeading}>
+          <View style={styles.headingCopy}>
+            <Text style={styles.eyebrow}>RAPHI CARD SHOP</Text>
+            <Text style={styles.title}>แดชบอร์ดร้านค้า</Text>
+            <Text style={styles.subtitle}>เช็กสินค้าและสต็อกล่าสุดได้ในที่เดียว</Text>
+          </View>
+          <View style={styles.dateBadge}>
+            <MaterialCommunityIcons name="calendar-blank-outline" size={18} color={AppColors.primary} />
+            <Text style={styles.dateText}>ข้อมูลล่าสุดวันนี้</Text>
+          </View>
+        </View>
+
+        <View style={styles.metricGrid}>
+          {metrics.map((metric) => (
+            <Card key={metric.label} style={styles.metricCard}>
+              <View style={[styles.metricIcon, { backgroundColor: metric.soft }]}>
+                <MaterialCommunityIcons name={metric.icon} size={23} color={metric.tone} />
+              </View>
+              <Text style={styles.metricLabel}>{metric.label}</Text>
+              <Text style={styles.metricValue}>{metric.value}</Text>
+              <Text style={styles.metricDetail}>{metric.detail}</Text>
+            </Card>
+          ))}
+        </View>
+
+        <View style={styles.dashboardGrid}>
+          <Card style={styles.inventoryPanel}>
+            <View style={styles.panelHeading}>
+              <View>
+                <Text style={styles.panelTitle}>ภาพรวมสต็อก</Text>
+                <Text style={styles.panelSubtitle}>จำนวนสินค้าคงเหลือแต่ละรายการ</Text>
+              </View>
+              <MaterialCommunityIcons name="chart-bar" size={22} color={AppColors.primary} />
+            </View>
+
+            <View style={styles.stockList}>
+              {profile.projects.map((product) => {
+                const percentage = Math.max(8, Math.round((product.stock / Math.max(stockTotal, 1)) * 100));
+                const lowStock = product.stock <= 5;
+                return (
+                  <View key={product.title} style={styles.stockRow}>
+                    <View style={styles.stockMeta}>
+                      <Text style={styles.stockName} numberOfLines={1}>{product.title}</Text>
+                      <Text style={[styles.stockCount, lowStock && styles.stockCountLow]}>{product.stock} ใบ</Text>
+                    </View>
+                    <View style={styles.track}>
+                      <View style={[styles.fill, lowStock && styles.fillLow, { width: `${percentage}%` }]} />
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          </Card>
+
+          <Card style={styles.quickPanel}>
+            <Text style={styles.panelTitle}>ทำรายการด่วน</Text>
+            <Text style={styles.panelSubtitle}>ไปยังงานที่ใช้บ่อย</Text>
+            <View style={styles.quickActions}>
+              <Button label="เพิ่มสินค้าใหม่" onPress={() => router.push('/add')} />
+              <Button label="จัดการสินค้า" onPress={() => router.push('/admin')} variant="secondary" />
+              <Button label="ส่งออกข้อมูล" onPress={() => router.push('/export')} variant="secondary" />
+            </View>
+            <View style={styles.notice}>
+              <MaterialCommunityIcons name="lightbulb-outline" size={20} color="#9A5A12" />
+              <Text style={styles.noticeText}>มีสินค้า {lowStockTotal} รายการที่เหลือไม่เกิน 5 ใบ</Text>
+            </View>
+          </Card>
+        </View>
+
+        <Card style={styles.recentPanel}>
+          <View style={styles.panelHeading}>
+            <View>
+              <Text style={styles.panelTitle}>สินค้าล่าสุด</Text>
+              <Text style={styles.panelSubtitle}>รายการที่กำลังแสดงในหน้าร้าน</Text>
+            </View>
+            <Button label="ดูทั้งหมด" onPress={() => router.push('/projects')} variant="secondary" />
+          </View>
+          <View style={styles.productList}>
+            {profile.projects.slice(0, 4).map((product) => (
+              <View key={product.title} style={styles.productRow}>
+                <View style={styles.thumbFrame}>
+                  <Image source={{ uri: product.imageUrl }} style={styles.thumb} contentFit="contain" />
+                </View>
+                <View style={styles.productInfo}>
+                  <Text style={styles.productName} numberOfLines={1}>{product.title}</Text>
+                  <Text style={styles.category}>{product.category}</Text>
+                </View>
+                <Text style={styles.price}>{product.price}</Text>
+                <View style={[styles.stockBadge, product.stock <= 5 && styles.stockBadgeLow]}>
+                  <Text style={[styles.stockBadgeText, product.stock <= 5 && styles.stockBadgeTextLow]}>คงเหลือ {product.stock}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        </Card>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
+  screen: { backgroundColor: AppColors.background, flex: 1 },
+  scroller: { flex: 1 },
+  content: { alignSelf: 'center', maxWidth: 1180, padding: AppSpacing.pageX, paddingBottom: 40, width: '100%' },
+  pageHeading: { alignItems: 'flex-end', flexDirection: 'row', flexWrap: 'wrap', gap: 16, justifyContent: 'space-between', marginBottom: 22 },
+  headingCopy: { flex: 1, minWidth: 250 },
+  eyebrow: { color: AppColors.primary, fontSize: 12, fontWeight: '900', marginBottom: 7 },
+  title: { color: AppColors.text, fontSize: 30, fontWeight: '900' },
+  subtitle: { color: AppColors.mutedText, fontSize: 15, marginTop: 6 },
+  dateBadge: { alignItems: 'center', backgroundColor: AppColors.softPurple, borderRadius: AppRadius.control, flexDirection: 'row', gap: 7, paddingHorizontal: 13, paddingVertical: 10 },
+  dateText: { color: AppColors.primaryDark, fontSize: 13, fontWeight: '800' },
+  metricGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: AppSpacing.cardGap },
+  metricCard: { flex: 1, minWidth: 205, padding: 18 },
+  metricIcon: { alignItems: 'center', borderRadius: 8, height: 42, justifyContent: 'center', marginBottom: 18, width: 42 },
+  metricLabel: { color: AppColors.mutedText, fontSize: 13, fontWeight: '700' },
+  metricValue: { color: AppColors.text, fontSize: 31, fontWeight: '900', marginTop: 3 },
+  metricDetail: { color: AppColors.subtleText, fontSize: 12, marginTop: 3 },
+  dashboardGrid: { alignItems: 'stretch', flexDirection: 'row', flexWrap: 'wrap', gap: AppSpacing.cardGap, marginTop: AppSpacing.cardGap },
+  inventoryPanel: { flex: 2, minWidth: 300 },
+  quickPanel: { flex: 1, minWidth: 270 },
+  panelHeading: { alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', gap: 12, justifyContent: 'space-between' },
+  panelTitle: { color: AppColors.text, fontSize: 18, fontWeight: '900' },
+  panelSubtitle: { color: AppColors.mutedText, fontSize: 13, marginTop: 4 },
+  stockList: { gap: 18, marginTop: 24 },
+  stockRow: { gap: 8 },
+  stockMeta: { alignItems: 'center', flexDirection: 'row', gap: 10, justifyContent: 'space-between' },
+  stockName: { color: AppColors.text, flex: 1, fontSize: 13, fontWeight: '800' },
+  stockCount: { color: AppColors.accent, fontSize: 12, fontWeight: '900' },
+  stockCountLow: { color: '#C56B16' },
+  track: { backgroundColor: '#EEF0F4', borderRadius: 4, height: 7, overflow: 'hidden' },
+  fill: { backgroundColor: AppColors.accent, borderRadius: 4, height: '100%' },
+  fillLow: { backgroundColor: '#E8A341' },
+  quickActions: { gap: 10, marginTop: 20 },
+  notice: { alignItems: 'flex-start', backgroundColor: '#FFF7E9', borderRadius: 8, flexDirection: 'row', gap: 9, marginTop: 18, padding: 12 },
+  noticeText: { color: '#7A4A13', flex: 1, fontSize: 12, fontWeight: '700', lineHeight: 18 },
+  recentPanel: { marginTop: AppSpacing.cardGap },
+  productList: { marginTop: 14 },
+  productRow: { alignItems: 'center', borderTopColor: AppColors.border, borderTopWidth: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 12, minHeight: 76, paddingVertical: 12 },
+  thumbFrame: { alignItems: 'center', backgroundColor: '#F4F5F7', borderRadius: 8, height: 52, justifyContent: 'center', width: 52 },
+  thumb: { height: 46, width: 34 },
+  productInfo: { flex: 1, minWidth: 150 },
+  productName: { color: AppColors.text, fontSize: 14, fontWeight: '900' },
+  category: { color: AppColors.mutedText, fontSize: 12, marginTop: 4 },
+  price: { color: AppColors.text, fontSize: 14, fontWeight: '900', minWidth: 82, textAlign: 'right' },
+  stockBadge: { backgroundColor: AppColors.softMint, borderRadius: AppRadius.pill, paddingHorizontal: 10, paddingVertical: 6 },
+  stockBadgeLow: { backgroundColor: '#FFF1DD' },
+  stockBadgeText: { color: AppColors.accent, fontSize: 11, fontWeight: '900' },
+  stockBadgeTextLow: { color: '#B35F12' },
 });

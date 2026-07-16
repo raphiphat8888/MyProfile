@@ -30,8 +30,22 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files
-.env*.local
+# local env files and secrets
+.env
+.env.*
+!.env.example
+
+# local tools
+.agents/
+tmp/
+
+# machine-specific editor settings
+.vscode/settings.json
+
+# generated reports
+output/
+docs/report-qa/
+docs/Raphiphat-Navigation-Report-QA.pdf
 
 # typescript
 *.tsbuildinfo
