@@ -1,12 +1,14 @@
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { Text } from 'react-native';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { AppColors } from '@/constants/Colors';
 
-function TabIcon({ icon, color }: { icon: string; color: string }) {
-  return <Text style={{ color, fontSize: 20, fontWeight: '900', lineHeight: 22 }}>{icon}</Text>;
+type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
+
+function TabIcon({ icon, color }: { icon: IconName; color: string }) {
+  return <MaterialCommunityIcons name={icon} color={color} size={22} />;
 }
 
 export default function TabLayout() {
@@ -14,10 +16,10 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: AppColors.primary,
-        tabBarInactiveTintColor: '#666666',
+        tabBarInactiveTintColor: '#667085',
         tabBarLabelStyle: {
           fontSize: 12,
-          fontWeight: '700',
+          fontWeight: '800',
         },
         tabBarStyle: {
           backgroundColor: '#FFFFFF',
@@ -34,37 +36,32 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => <TabIcon icon="H" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="projects"
-        options={{
-          title: 'Products',
-          tabBarIcon: ({ color }) => <TabIcon icon="P" color={color} />,
+          tabBarIcon: ({ color }) => <TabIcon icon="home-outline" color={color} />,
         }}
       />
       <Tabs.Screen
         name="add"
         options={{
           title: 'Add',
-          tabBarIcon: ({ color }) => <TabIcon icon="+" color={color} />,
+          tabBarIcon: ({ color }) => <TabIcon icon="plus-circle-outline" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="admin"
+        name="projects"
         options={{
-          title: 'Admin',
-          tabBarIcon: ({ color }) => <TabIcon icon="A" color={color} />,
+          title: 'Products',
+          tabBarIcon: ({ color }) => <TabIcon icon="cards-outline" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="export"
+        name="categories"
         options={{
-          title: 'Export',
-          tabBarIcon: ({ color }) => <TabIcon icon="E" color={color} />,
+          title: 'Categories',
+          tabBarIcon: ({ color }) => <TabIcon icon="shape-outline" color={color} />,
         }}
       />
+      <Tabs.Screen name="admin" options={{ href: null }} />
+      <Tabs.Screen name="export" options={{ href: null }} />
     </Tabs>
   );
 }

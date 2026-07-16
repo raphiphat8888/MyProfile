@@ -2,7 +2,7 @@ import { type Href, useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { AppColors, AppRadius } from '@/constants/Colors';
-import { profile } from '@/constants/ProfileData';
+import { useProfile } from '@/hooks/use-profile';
 
 type HeaderProps = {
   title: string;
@@ -20,6 +20,7 @@ export function Header({
   filterLabel = 'Filter',
 }: HeaderProps) {
   const router = useRouter();
+  const { profile } = useProfile();
 
   return (
     <View style={styles.wrapper}>
@@ -79,7 +80,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 15,
-    width: '100%',
   },
   menuButton: {
     alignItems: 'center',
@@ -115,6 +115,7 @@ const styles = StyleSheet.create({
   searchContainer: {
     alignItems: 'center',
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 10,
     paddingHorizontal: 20,
     paddingVertical: 14,

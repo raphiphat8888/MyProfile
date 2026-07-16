@@ -6,22 +6,16 @@ export type ProfileLink = {
   href: string;
 };
 
-export type Project = {
-  title: string;
-  description: string;
-  techStack: string[];
-  href?: string;
-  status?: string;
-  price: string;
-  stock: number;
-  category: string;
-  imageUrl?: string;
-};
-
 export type SkillGroup = {
   title: string;
   description: string;
   skills: string[];
+};
+
+export type ProfileSettings = {
+  currency: string;
+  lowStockThreshold: number;
+  homeProductLimit: number;
 };
 
 export type ActionLink = {
@@ -31,6 +25,7 @@ export type ActionLink = {
 };
 
 export type Profile = {
+  schemaVersion: number;
   name: string;
   appName: string;
   role: string;
@@ -43,6 +38,6 @@ export type Profile = {
   github: ProfileLink;
   facebook: ProfileLink;
   phone: ProfileLink;
-  projects: Project[];
+  settings: ProfileSettings;
   skills: SkillGroup[];
 };

@@ -4,6 +4,8 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { ProfileProvider } from '@/providers/ProfileProvider';
+import { ProductsProvider } from '@/providers/ProductsProvider';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -13,12 +15,16 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" options={{ title: 'Not found' }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <ProfileProvider>
+      <ProductsProvider>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="+not-found" options={{ title: 'Not found' }} />
+          </Stack>
+          <StatusBar style="auto" />
+        </ThemeProvider>
+      </ProductsProvider>
+    </ProfileProvider>
   );
 }

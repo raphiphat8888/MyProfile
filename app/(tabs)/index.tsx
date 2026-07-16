@@ -1,28 +1,40 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import { SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { Pressable, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
 import { Header } from '@/components/common/Header';
 import { AppColors, AppRadius, AppSpacing } from '@/constants/Colors';
-import { profile } from '@/constants/ProfileData';
+import { useProducts } from '@/hooks/use-products';
+import { useProfile } from '@/hooks/use-profile';
 
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 
-const stockTotal = profile.projects.reduce((total, product) => total + product.stock, 0);
-const lowStockTotal = profile.projects.filter((product) => product.stock <= 5).length;
-
-const metrics: { label: string; value: string; detail: string; icon: IconName; tone: string; soft: string }[] = [
-  { label: 'สินค้าทั้งหมด', value: String(profile.projects.length), detail: 'รายการในแค็ตตาล็อก', icon: 'cards-outline', tone: '#2563EB', soft: '#EAF1FF' },
-  { label: 'สต็อกคงเหลือ', value: String(stockTotal), detail: 'ใบพร้อมจำหน่าย', icon: 'archive-outline', tone: '#087F8C', soft: '#E7F8F8' },
-  { label: 'สต็อกใกล้หมด', value: String(lowStockTotal), detail: 'ควรเติมสินค้า', icon: 'alert-circle-outline', tone: '#C56B16', soft: '#FFF4E5' },
-  { label: 'หมวดหมู่', value: String(profile.skills.length), detail: 'กลุ่มสินค้า', icon: 'shape-outline', tone: '#B33965', soft: '#FCECF2' },
-];
-
 export default function HomeScreen() {
   const router = useRouter();
+  const { profile } = useProfile();
+  const { error, loading, products, refresh } = useProducts();
+  const { homeProductLimit, lowStockThreshold } = profile.settings;
+  const stockTotal = products.reduce((total, product) => total + product.stock, 0);
+  const lowStockTotal = products.filter(
+    (product) => product.stock <= lowStockThreshold,
+  ).length;
+  const categoryTotal = new Set(products.map((product) => product.category)).size;
+  const metrics: {
+    label: string;
+    value: string;
+    detail: string;
+    icon: IconName;
+    tone: string;
+    soft: string;
+  }[] = [
+    { label: 'สินค้าทั้งหมด', value: String(products.length), detail: 'รายการในแค็ตตาล็อก', icon: 'cards-outline', tone: '#2563EB', soft: '#EAF1FF' },
+    { label: 'สต็อกคงเหลือ', value: String(stockTotal), detail: 'ใบพร้อมจำหน่าย', icon: 'archive-outline', tone: '#087F8C', soft: '#E7F8F8' },
+    { label: 'สต็อกใกล้หมด', value: String(lowStockTotal), detail: 'ควรเติมสินค้า', icon: 'alert-circle-outline', tone: '#C56B16', soft: '#FFF4E5' },
+    { label: 'หมวดหมู่', value: String(categoryTotal), detail: 'กลุ่มสินค้า', icon: 'shape-outline', tone: '#B33965', soft: '#FCECF2' },
+  ];
 
   return (
     <SafeAreaView style={styles.screen}>
@@ -36,10 +48,16 @@ export default function HomeScreen() {
             <Text style={styles.title}>แดชบอร์ดร้านค้า</Text>
             <Text style={styles.subtitle}>เช็กสินค้าและสต็อกล่าสุดได้ในที่เดียว</Text>
           </View>
-          <View style={styles.dateBadge}>
+          <Pressable onPress={() => void refresh()} style={styles.dateBadge}>
             <MaterialCommunityIcons name="calendar-blank-outline" size={18} color={AppColors.primary} />
-            <Text style={styles.dateText}>ข้อมูลล่าสุดวันนี้</Text>
-          </View>
+            <Text style={styles.dateText}>
+              {loading
+                ? 'กำลังอัปเดตข้อมูล...'
+                : error
+                  ? 'ใช้ข้อมูลสำรอง · แตะเพื่อลองใหม่'
+                  : 'ข้อมูลล่าสุดจาก GitHub'}
+            </Text>
+          </Pressable>
         </View>
 
         <View style={styles.metricGrid}>
@@ -66,13 +84,13 @@ export default function HomeScreen() {
             </View>
 
             <View style={styles.stockList}>
-              {profile.projects.map((product) => {
+              {products.map((product) => {
                 const percentage = Math.max(8, Math.round((product.stock / Math.max(stockTotal, 1)) * 100));
-                const lowStock = product.stock <= 5;
+                const lowStock = product.stock <= lowStockThreshold;
                 return (
-                  <View key={product.title} style={styles.stockRow}>
+                  <View key={product.id} style={styles.stockRow}>
                     <View style={styles.stockMeta}>
-                      <Text style={styles.stockName} numberOfLines={1}>{product.title}</Text>
+                      <Text style={styles.stockName} numberOfLines={1}>{product.name}</Text>
                       <Text style={[styles.stockCount, lowStock && styles.stockCountLow]}>{product.stock} ใบ</Text>
                     </View>
                     <View style={styles.track}>
@@ -94,7 +112,7 @@ export default function HomeScreen() {
             </View>
             <View style={styles.notice}>
               <MaterialCommunityIcons name="lightbulb-outline" size={20} color="#9A5A12" />
-              <Text style={styles.noticeText}>มีสินค้า {lowStockTotal} รายการที่เหลือไม่เกิน 5 ใบ</Text>
+              <Text style={styles.noticeText}>มีสินค้า {lowStockTotal} รายการที่เหลือไม่เกิน {lowStockThreshold} ใบ</Text>
             </View>
           </Card>
         </View>
@@ -108,18 +126,18 @@ export default function HomeScreen() {
             <Button label="ดูทั้งหมด" onPress={() => router.push('/projects')} variant="secondary" />
           </View>
           <View style={styles.productList}>
-            {profile.projects.slice(0, 4).map((product) => (
-              <View key={product.title} style={styles.productRow}>
+            {products.slice(0, homeProductLimit).map((product) => (
+              <View key={product.id} style={styles.productRow}>
                 <View style={styles.thumbFrame}>
-                  <Image source={{ uri: product.imageUrl }} style={styles.thumb} contentFit="contain" />
+                  <Image source={{ uri: product.image_url }} style={styles.thumb} contentFit="contain" />
                 </View>
                 <View style={styles.productInfo}>
-                  <Text style={styles.productName} numberOfLines={1}>{product.title}</Text>
+                  <Text style={styles.productName} numberOfLines={1}>{product.name}</Text>
                   <Text style={styles.category}>{product.category}</Text>
                 </View>
-                <Text style={styles.price}>{product.price}</Text>
-                <View style={[styles.stockBadge, product.stock <= 5 && styles.stockBadgeLow]}>
-                  <Text style={[styles.stockBadgeText, product.stock <= 5 && styles.stockBadgeTextLow]}>คงเหลือ {product.stock}</Text>
+                <Text style={styles.price}>{product.location_text}</Text>
+                <View style={[styles.stockBadge, product.stock <= lowStockThreshold && styles.stockBadgeLow]}>
+                  <Text style={[styles.stockBadgeText, product.stock <= lowStockThreshold && styles.stockBadgeTextLow]}>คงเหลือ {product.stock}</Text>
                 </View>
               </View>
             ))}

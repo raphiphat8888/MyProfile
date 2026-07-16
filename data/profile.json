@@ -33,52 +33,6 @@
     "lowStockThreshold": 5,
     "homeProductLimit": 4
   },
-  "projects": [
-    {
-      "id": "pikachu-collector-card",
-      "title": "Pikachu Collector Card",
-      "description": "Popular electric-type card for collectors. Great for display binders and gift sets.",
-      "techStack": ["Single Card", "Collector", "Near Mint"],
-      "status": "Hot",
-      "price": "350 THB",
-      "stock": 8,
-      "category": "Single Card",
-      "imageUrl": "https://images.pokemontcg.io/basep/1_hires.png"
-    },
-    {
-      "id": "charizard-fire-bundle",
-      "title": "Charizard Fire Bundle",
-      "description": "Fire-type bundle with premium picks for players who like strong attack cards.",
-      "techStack": ["Bundle", "Fire Type", "Limited"],
-      "status": "Rare",
-      "price": "1,490 THB",
-      "stock": 2,
-      "category": "Bundle",
-      "imageUrl": "https://images.pokemontcg.io/base4/4_hires.png"
-    },
-    {
-      "id": "booster-pack-set",
-      "title": "Booster Pack Set",
-      "description": "Sealed booster packs for opening, collecting, or starting a new deck build.",
-      "techStack": ["Sealed Pack", "Random Pull", "In Stock"],
-      "status": "New",
-      "price": "180 THB",
-      "stock": 24,
-      "category": "Sealed Pack",
-      "imageUrl": "https://images.pokemontcg.io/swshp/SWSH050_hires.png"
-    },
-    {
-      "id": "starter-deck-box",
-      "title": "Starter Deck Box",
-      "description": "Ready-to-play deck set for beginners who want to start battling right away.",
-      "techStack": ["Starter Deck", "Beginner", "Ready Play"],
-      "status": "Best Deal",
-      "price": "590 THB",
-      "stock": 5,
-      "category": "Deck",
-      "imageUrl": "https://images.pokemontcg.io/base1/2_hires.png"
-    }
-  ],
   "skills": [
     {
       "title": "Single Cards",

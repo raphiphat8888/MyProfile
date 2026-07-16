@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Image } from 'expo-image';
 import { SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, TextInput, View } from 'react-native';
 
@@ -7,41 +7,52 @@ import { Card } from '@/components/common/Card';
 import { Header } from '@/components/common/Header';
 import { SectionTitle } from '@/components/common/SectionTitle';
 import { AppColors, AppRadius, AppSpacing } from '@/constants/Colors';
-import { profile } from '@/constants/ProfileData';
-import type { Project } from '@/types/profile';
+import { useProducts } from '@/hooks/use-products';
+import { useProfile } from '@/hooks/use-profile';
+import type { Product } from '@/types/product';
 
 export default function AdminScreen() {
-  const [products, setProducts] = useState<Project[]>(profile.projects);
-  const [editingTitle, setEditingTitle] = useState<string | null>(null);
-  const [draftPrice, setDraftPrice] = useState('');
+  const { profile } = useProfile();
+  const { products: remoteProducts } = useProducts();
+  const [products, setProducts] = useState<Product[]>(remoteProducts);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [draftStock, setDraftStock] = useState('');
   const [draftImageUrl, setDraftImageUrl] = useState('');
 
-  const startEdit = (product: Project) => {
-    setEditingTitle(product.title);
-    setDraftPrice(product.price);
+  useEffect(() => {
+    setProducts(remoteProducts);
+  }, [remoteProducts]);
+
+  const startEdit = (product: Product) => {
+    setEditingId(product.id);
     setDraftStock(String(product.stock));
-    setDraftImageUrl(product.imageUrl ?? '');
+    setDraftImageUrl(product.image_url);
   };
 
-  const saveEdit = (title: string) => {
+  const saveEdit = (id: string) => {
     setProducts((current) =>
-      current.map((product) =>
-        product.title === title
-          ? {
-              ...product,
-              imageUrl: draftImageUrl || product.imageUrl,
-              price: draftPrice || product.price,
-              stock: Number(draftStock) || product.stock,
-            }
-          : product,
-      ),
+      current.map((product) => {
+        if (product.id !== id) {
+          return product;
+        }
+
+        const parsedStock = Number(draftStock);
+        const stock = Number.isFinite(parsedStock) && parsedStock >= 0 ? parsedStock : product.stock;
+
+        return {
+          ...product,
+          image_url: draftImageUrl || product.image_url,
+          stock,
+          stock_text: `${stock} in stock`,
+          badge_status: stock <= profile.settings.lowStockThreshold ? 'Low in stock' : 'Active',
+        };
+      }),
     );
-    setEditingTitle(null);
+    setEditingId(null);
   };
 
-  const deleteProduct = (title: string) => {
-    setProducts((current) => current.filter((product) => product.title !== title));
+  const deleteProduct = (id: string) => {
+    setProducts((current) => current.filter((product) => product.id !== id));
   };
 
   return (
@@ -52,32 +63,31 @@ export default function AdminScreen() {
         <SectionTitle
           eyebrow="Admin"
           title="Manage products"
-          description="Edit price and stock, delete unavailable products, or jump to the add product screen."
+          description="Preview stock and image changes locally. Update products.json and push to GitHub to publish permanent changes."
         />
 
         <View style={styles.list}>
           {products.map((product) => (
-            <Card key={product.title} style={styles.productCard}>
+            <Card key={product.id} style={styles.productCard}>
               <View style={styles.thumbFrame}>
-                {product.imageUrl ? (
-                  <Image source={{ uri: product.imageUrl }} style={styles.thumb} contentFit="contain" />
+                {product.image_url ? (
+                  <Image source={{ uri: product.image_url }} style={styles.thumb} contentFit="contain" />
                 ) : null}
                 <View style={styles.thumbFallbackBox}>
-                  <Text style={styles.thumbFallback}>{product.title.slice(0, 1)}</Text>
+                  <Text style={styles.thumbFallback}>{product.name.slice(0, 1)}</Text>
                   <Text style={styles.thumbName}>{product.category}</Text>
                 </View>
               </View>
               <View style={styles.productTop}>
                 <View style={styles.productInfo}>
-                  <Text style={styles.title}>{product.title}</Text>
-                  <Text style={styles.meta}>{product.category} / {product.status}</Text>
+                  <Text style={styles.title}>{product.name}</Text>
+                  <Text style={styles.meta}>{product.category} / {product.location_text}</Text>
                 </View>
-                <Text style={styles.price}>{product.price}</Text>
+                <Text style={styles.price}>{product.badge_status}</Text>
               </View>
 
-              {editingTitle === product.title ? (
+              {editingId === product.id ? (
                 <View style={styles.editArea}>
-                  <TextInput style={styles.input} value={draftPrice} onChangeText={setDraftPrice} placeholder="Price" />
                   <TextInput
                     autoCapitalize="none"
                     style={styles.input}
@@ -93,15 +103,15 @@ export default function AdminScreen() {
                     keyboardType="number-pad"
                   />
                   <View style={styles.actions}>
-                    <Button label="Save" onPress={() => saveEdit(product.title)} />
-                    <Button label="Cancel" onPress={() => setEditingTitle(null)} variant="secondary" />
+                    <Button label="Save" onPress={() => saveEdit(product.id)} />
+                    <Button label="Cancel" onPress={() => setEditingId(null)} variant="secondary" />
                   </View>
                 </View>
               ) : (
                 <View style={styles.actions}>
                   <Text style={styles.stock}>Stock {product.stock}</Text>
                   <Button label="Edit" onPress={() => startEdit(product)} variant="secondary" />
-                  <Button label="Delete" onPress={() => deleteProduct(product.title)} />
+                  <Button label="Delete" onPress={() => deleteProduct(product.id)} />
                 </View>
               )}
             </Card>

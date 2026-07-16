@@ -10,9 +10,9 @@ import { AppColors, AppRadius, AppSpacing } from '@/constants/Colors';
 
 export default function AddProductScreen() {
   const [name, setName] = useState('');
-  const [price, setPrice] = useState('');
   const [stock, setStock] = useState('');
   const [category, setCategory] = useState('');
+  const [locationCount, setLocationCount] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [saved, setSaved] = useState(false);
 
@@ -23,12 +23,12 @@ export default function AddProductScreen() {
   return (
     <SafeAreaView style={styles.screen}>
       <StatusBar barStyle="dark-content" backgroundColor={AppColors.background} />
-      <Header title="Add Product" searchPlaceholder="Search products..." actionLabel="Admin" actionHref="/admin" />
+      <Header title="Add Product" searchPlaceholder="Search products..." actionLabel="Products" actionHref="/projects" />
       <ScrollView style={styles.scroller} contentContainerStyle={styles.content}>
         <SectionTitle
           eyebrow="Admin"
           title="Add Pokemon card product"
-          description="Create a product listing for card name, price, stock, category, and description."
+          description="Prepare the product fields used by products.json: name, stock, category, store count, and image URL."
         />
 
         <Card style={styles.form}>
@@ -37,12 +37,18 @@ export default function AddProductScreen() {
 
           <View style={styles.row}>
             <View style={styles.field}>
-              <Text style={styles.label}>Price</Text>
-              <TextInput style={styles.input} value={price} onChangeText={setPrice} placeholder="350 THB" />
-            </View>
-            <View style={styles.field}>
               <Text style={styles.label}>Stock</Text>
               <TextInput style={styles.input} value={stock} onChangeText={setStock} placeholder="8" keyboardType="number-pad" />
+            </View>
+            <View style={styles.field}>
+              <Text style={styles.label}>Store locations</Text>
+              <TextInput
+                style={styles.input}
+                value={locationCount}
+                onChangeText={setLocationCount}
+                placeholder="3"
+                keyboardType="number-pad"
+              />
             </View>
           </View>
 
@@ -65,13 +71,13 @@ export default function AddProductScreen() {
           </View>
 
           <View style={styles.actions}>
-            <Button label="Save Product" onPress={handleSave} />
-            <Button label="Go Admin" href="/admin" variant="secondary" />
+            <Button label="Prepare Product" onPress={handleSave} />
+            <Button label="View Products" href="/projects" variant="secondary" />
           </View>
 
           {saved ? (
             <Text style={styles.notice}>
-              Saved locally for this demo. Connect a backend/database later for permanent storage.
+              Product draft prepared locally. Add it to products.json, then commit and push to publish it.
             </Text>
           ) : null}
         </Card>

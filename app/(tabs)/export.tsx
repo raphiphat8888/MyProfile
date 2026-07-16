@@ -4,16 +4,27 @@ import { Card } from '@/components/common/Card';
 import { Header } from '@/components/common/Header';
 import { SectionTitle } from '@/components/common/SectionTitle';
 import { AppColors, AppSpacing } from '@/constants/Colors';
-import { profile } from '@/constants/ProfileData';
-
-const csv = [
-  'title,category,price,stock,status,imageUrl',
-  ...profile.projects.map((product) =>
-    [product.title, product.category, product.price, product.stock, product.status, product.imageUrl ?? ''].join(','),
-  ),
-].join('\n');
+import { useProducts } from '@/hooks/use-products';
 
 export default function ExportScreen() {
+  const { products } = useProducts();
+  const csv = [
+    'id,name,stock,stock_text,category,location_count,location_text,badge_status,image_url',
+    ...products.map((product) =>
+      [
+        product.id,
+        product.name,
+        product.stock,
+        product.stock_text,
+        product.category,
+        product.location_count,
+        product.location_text,
+        product.badge_status,
+        product.image_url,
+      ].join(','),
+    ),
+  ].join('\n');
+
   return (
     <SafeAreaView style={styles.screen}>
       <StatusBar barStyle="dark-content" backgroundColor={AppColors.background} />
@@ -27,7 +38,7 @@ export default function ExportScreen() {
 
         <Card>
           <View style={styles.summary}>
-            <Text style={styles.summaryValue}>{profile.projects.length}</Text>
+            <Text style={styles.summaryValue}>{products.length}</Text>
             <Text style={styles.summaryLabel}>products ready to export</Text>
           </View>
           <Text selectable style={styles.code}>

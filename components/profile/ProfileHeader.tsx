@@ -4,7 +4,7 @@ import { Animated, Pressable, StyleSheet, Text, useWindowDimensions, View } from
 
 import { Button } from '@/components/common/Button';
 import { AppColors, AppRadius } from '@/constants/Colors';
-import { profile } from '@/constants/ProfileData';
+import { useProfile } from '@/hooks/use-profile';
 
 const heroImageUrl = 'https://i.pinimg.com/originals/20/42/13/204213fb1069918be7f081a46a93f0af.jpg';
 
@@ -61,6 +61,7 @@ function HeroCardImage() {
 
 export function ProfileHeader() {
   const { width } = useWindowDimensions();
+  const { profile } = useProfile();
   const isWide = width >= 800;
 
   return (

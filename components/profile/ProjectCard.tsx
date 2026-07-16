@@ -1,332 +1,198 @@
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Image } from 'expo-image';
-import { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { Card } from '@/components/common/Card';
 import { AppColors, AppRadius } from '@/constants/Colors';
-import type { Project } from '@/types/profile';
-import { openLink } from '@/utils/openLink';
+import type { Product } from '@/types/product';
 
 type ProjectCardProps = {
-  project: Project;
+  product: Product;
 };
 
-function ProductImageFlip({
-  hovered,
-  project,
-}: {
-  hovered: boolean;
-  project: Project;
-}) {
+export function ProjectCard({ product }: ProjectCardProps) {
   const [imageFailed, setImageFailed] = useState(false);
-  const flip = useRef(new Animated.Value(0)).current;
-  const showImage = project.imageUrl && !imageFailed;
-
-  useEffect(() => {
-    Animated.timing(flip, {
-      duration: 620,
-      easing: Easing.inOut(Easing.cubic),
-      toValue: hovered ? 180 : 0,
-      useNativeDriver: true,
-    }).start();
-  }, [flip, hovered]);
-
-  const frontRotation = flip.interpolate({
-    inputRange: [0, 180],
-    outputRange: ['0deg', '180deg'],
-  });
-  const backRotation = flip.interpolate({
-    inputRange: [0, 180],
-    outputRange: ['180deg', '360deg'],
-  });
-  const frontOpacity = flip.interpolate({
-    inputRange: [0, 89, 90, 180],
-    outputRange: [1, 1, 0, 0],
-  });
-  const backOpacity = flip.interpolate({
-    inputRange: [0, 89, 90, 180],
-    outputRange: [0, 0, 1, 1],
-  });
+  const isLowStock = product.badge_status === 'Low in stock';
 
   return (
-    <View style={styles.imageFrame}>
-      <Animated.View
-        style={[
-          styles.face,
-          styles.frontFace,
-          {
-            opacity: frontOpacity,
-            transform: [{ perspective: 900 }, { rotateY: frontRotation }],
-          },
-        ]}>
-        {showImage ? (
+    <Card style={styles.card}>
+      <View style={styles.imageFrame}>
+        {!imageFailed ? (
           <Image
-            source={{ uri: project.imageUrl }}
+            source={{ uri: product.image_url }}
             style={styles.image}
             contentFit="contain"
             onError={() => setImageFailed(true)}
           />
         ) : (
           <View style={styles.imageFallback}>
-            <Text style={styles.fallbackBadge}>{project.category}</Text>
-            <Text style={styles.fallbackText}>{project.title.slice(0, 1)}</Text>
-            <Text style={styles.fallbackName}>{project.title}</Text>
+            <Text style={styles.fallbackText}>{product.name.slice(0, 1)}</Text>
           </View>
         )}
-      </Animated.View>
+      </View>
 
-      <Animated.View
-        style={[
-          styles.face,
-          styles.backFace,
-          {
-            opacity: backOpacity,
-            transform: [{ perspective: 900 }, { rotateY: backRotation }],
-          },
-        ]}>
-        <View style={styles.blurOrbLarge} />
-        <View style={styles.blurOrbSmall} />
-        <View style={styles.glassPanel} />
-        <Text style={styles.backBadge}>Card Back</Text>
-        <Text style={styles.backTitle}>{project.title}</Text>
-        <Text style={styles.backMeta}>{project.category}</Text>
-        <View style={styles.backDivider} />
-        <Text style={styles.backPrice}>{project.price}</Text>
-        <Text style={styles.backStock}>Stock {project.stock}</Text>
-      </Animated.View>
-    </View>
+      <View style={styles.content}>
+        <View style={styles.heading}>
+          <View style={styles.titleGroup}>
+            <Text style={styles.eyebrow}>PRODUCT {product.id.padStart(2, '0')}</Text>
+            <Text style={styles.title}>{product.name}</Text>
+          </View>
+          <View style={[styles.badge, isLowStock && styles.badgeLow]}>
+            <View style={[styles.badgeDot, isLowStock && styles.badgeDotLow]} />
+            <Text style={[styles.badgeText, isLowStock && styles.badgeTextLow]}>
+              {product.badge_status}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.details}>
+          <View style={styles.detailItem}>
+            <MaterialCommunityIcons name="archive-outline" size={18} color={AppColors.primary} />
+            <View>
+              <Text style={styles.detailLabel}>Stock</Text>
+              <Text style={styles.detailValue}>{product.stock_text}</Text>
+            </View>
+          </View>
+          <View style={styles.detailItem}>
+            <MaterialCommunityIcons name="shape-outline" size={18} color={AppColors.primary} />
+            <View>
+              <Text style={styles.detailLabel}>Category</Text>
+              <Text style={styles.detailValue}>{product.category}</Text>
+            </View>
+          </View>
+          <View style={styles.detailItem}>
+            <MaterialCommunityIcons name="store-outline" size={18} color={AppColors.primary} />
+            <View>
+              <Text style={styles.detailLabel}>Location</Text>
+              <Text style={styles.detailValue}>{product.location_text}</Text>
+            </View>
+          </View>
+        </View>
+      </View>
+    </Card>
   );
-}
-
-export function ProjectCard({ project }: ProjectCardProps) {
-  const content = (
-    <Pressable
-      onPress={project.href ? () => openLink(project.href!) : undefined}
-      style={styles.pressableCard}>
-      {({ hovered }) => (
-        <Card style={styles.card}>
-          <ProductImageFlip hovered={hovered} project={project} />
-          <View style={styles.heading}>
-            <Text style={styles.title}>{project.title}</Text>
-            {project.status ? <Text style={styles.status}>{project.status}</Text> : null}
-          </View>
-          <Text style={styles.description}>{project.description}</Text>
-          <View style={styles.metaRow}>
-            <Text style={styles.price}>{project.price}</Text>
-            <Text style={styles.stock}>Stock {project.stock}</Text>
-          </View>
-          <View style={styles.stack}>
-            {project.techStack.map((tech) => (
-              <Text key={tech} style={styles.tech}>
-                {tech}
-              </Text>
-            ))}
-          </View>
-        </Card>
-      )}
-    </Pressable>
-  );
-
-  return content;
 }
 
 const styles = StyleSheet.create({
-  pressableCard: {
-    flex: 1,
-    minWidth: 280,
-  },
   card: {
-    flex: 1,
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 18,
+    padding: 16,
   },
   imageFrame: {
     alignItems: 'center',
-    backgroundColor: '#F8F9FA',
-    borderRadius: AppRadius.control,
+    backgroundColor: '#F2F5FA',
     borderColor: AppColors.border,
+    borderRadius: AppRadius.control,
     borderWidth: 1,
-    height: 210,
+    height: 132,
     justifyContent: 'center',
-    marginBottom: 16,
     overflow: 'hidden',
-  },
-  face: {
-    alignItems: 'center',
-    backfaceVisibility: 'hidden',
-    borderRadius: AppRadius.control,
-    height: '100%',
-    justifyContent: 'center',
-    position: 'absolute',
-    width: '100%',
-  },
-  frontFace: {
-    backgroundColor: '#F8F9FA',
-  },
-  backFace: {
-    backgroundColor: '#1849B8',
-    padding: 18,
-  },
-  blurOrbLarge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.22)',
-    borderRadius: 120,
-    height: 190,
-    left: -58,
-    opacity: 0.9,
-    position: 'absolute',
-    top: -60,
-    width: 190,
-  },
-  blurOrbSmall: {
-    backgroundColor: 'rgba(36, 207, 255, 0.20)',
-    borderRadius: 90,
-    bottom: -45,
-    height: 150,
-    opacity: 0.9,
-    position: 'absolute',
-    right: -36,
-    width: 150,
-  },
-  glassPanel: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderColor: 'rgba(255, 255, 255, 0.24)',
-    borderRadius: AppRadius.control,
-    borderWidth: 1,
-    height: '100%',
-    position: 'absolute',
-    width: '100%',
+    width: 132,
   },
   image: {
-    height: 188,
-    width: 132,
+    height: 118,
+    width: 84,
   },
   imageFallback: {
     alignItems: 'center',
-    backgroundColor: AppColors.primary,
-    borderRadius: AppRadius.control,
+    backgroundColor: AppColors.softBlue,
     height: '100%',
     justifyContent: 'center',
-    padding: 16,
     width: '100%',
   },
-  fallbackBadge: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: AppRadius.pill,
-    color: AppColors.primary,
-    fontSize: 11,
-    fontWeight: '900',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-  },
   fallbackText: {
-    color: '#FFFFFF',
-    fontSize: 54,
-    fontWeight: '900',
-    marginTop: 14,
-  },
-  fallbackName: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '900',
-    marginTop: 10,
-    textAlign: 'center',
-  },
-  backBadge: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: AppRadius.pill,
     color: AppColors.primary,
-    fontSize: 11,
-    fontWeight: '900',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-  },
-  backTitle: {
-    color: '#FFFFFF',
-    fontSize: 20,
-    fontWeight: '900',
-    marginTop: 18,
-    textAlign: 'center',
-  },
-  backMeta: {
-    color: '#DCE8FF',
-    fontSize: 13,
-    fontWeight: '800',
-    marginTop: 8,
-  },
-  backDivider: {
-    backgroundColor: '#F5C518',
-    height: 1,
-    marginVertical: 16,
-    width: '72%',
-  },
-  backPrice: {
-    color: '#FFFFFF',
-    fontSize: 24,
+    fontSize: 42,
     fontWeight: '900',
   },
-  backStock: {
-    color: '#DCE8FF',
-    fontSize: 13,
-    fontWeight: '800',
-    marginTop: 6,
+  content: {
+    flex: 1,
+    gap: 18,
+    minWidth: 240,
   },
   heading: {
     alignItems: 'flex-start',
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    gap: 12,
     justifyContent: 'space-between',
+  },
+  titleGroup: {
+    flex: 1,
+    minWidth: 190,
+  },
+  eyebrow: {
+    color: AppColors.primary,
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 1.2,
   },
   title: {
     color: AppColors.text,
-    flex: 1,
     fontSize: 20,
     fontWeight: '900',
-    minWidth: 180,
+    lineHeight: 26,
+    marginTop: 5,
   },
-  status: {
+  badge: {
+    alignItems: 'center',
     backgroundColor: AppColors.softMint,
     borderRadius: AppRadius.pill,
-    color: AppColors.accent,
-    fontSize: 12,
-    fontWeight: '900',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-  },
-  description: {
-    color: AppColors.mutedText,
-    fontSize: 15,
-    lineHeight: 23,
-    marginTop: 10,
-  },
-  metaRow: {
-    alignItems: 'center',
     flexDirection: 'row',
-    gap: 10,
-    justifyContent: 'space-between',
-    marginTop: 14,
+    gap: 7,
+    paddingHorizontal: 11,
+    paddingVertical: 7,
   },
-  price: {
-    color: AppColors.primary,
-    fontSize: 18,
+  badgeLow: {
+    backgroundColor: '#FFF1DD',
+  },
+  badgeDot: {
+    backgroundColor: AppColors.accent,
+    borderRadius: 4,
+    height: 7,
+    width: 7,
+  },
+  badgeDotLow: {
+    backgroundColor: '#C56B16',
+  },
+  badgeText: {
+    color: AppColors.accent,
+    fontSize: 11,
     fontWeight: '900',
   },
-  stock: {
-    color: AppColors.mutedText,
-    fontSize: 13,
-    fontWeight: '800',
+  badgeTextLow: {
+    color: '#A95610',
   },
-  stack: {
+  details: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 18,
+    gap: 12,
   },
-  tech: {
-    backgroundColor: AppColors.softPurple,
-    borderRadius: AppRadius.pill,
-    color: AppColors.secondary,
-    fontSize: 12,
+  detailItem: {
+    alignItems: 'center',
+    backgroundColor: '#F7F9FC',
+    borderRadius: 10,
+    flex: 1,
+    flexDirection: 'row',
+    gap: 9,
+    minWidth: 135,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  detailLabel: {
+    color: AppColors.subtleText,
+    fontSize: 10,
     fontWeight: '800',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    textTransform: 'uppercase',
+  },
+  detailValue: {
+    color: AppColors.text,
+    fontSize: 13,
+    fontWeight: '900',
+    marginTop: 2,
   },
 });
