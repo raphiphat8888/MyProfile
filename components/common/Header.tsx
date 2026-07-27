@@ -1,8 +1,8 @@
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { type Href, useRouter } from 'expo-router';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 
-import { AppColors, AppRadius } from '@/constants/Colors';
-import { useProfile } from '@/hooks/use-profile';
+import { AppColors, AppFonts, AppRadius } from '@/constants/Colors';
 
 type HeaderProps = {
   title: string;
@@ -12,162 +12,69 @@ type HeaderProps = {
   filterLabel?: string;
 };
 
-export function Header({
-  title,
-  searchPlaceholder,
-  actionLabel,
-  actionHref,
-  filterLabel = 'Filter',
-}: HeaderProps) {
+export function Header({ title, searchPlaceholder, actionLabel, actionHref }: HeaderProps) {
   const router = useRouter();
-  const { profile } = useProfile();
+  const { width } = useWindowDimensions();
+  const showSearch = width >= 760;
 
   return (
     <View style={styles.wrapper}>
       <View style={styles.header}>
-        <Pressable style={({ pressed }) => [styles.menuButton, pressed && styles.pressed]}>
-          <Text style={styles.menuIcon}>☰</Text>
+        <Pressable onPress={() => router.push('/')} style={styles.brandMark}>
+          <MaterialCommunityIcons name="view-grid-outline" color={AppColors.primary} size={23} />
         </Pressable>
-
-        <Text style={styles.headerTitle}>{title}</Text>
-
-        <Pressable
-          onPress={() => router.push('/admin')}
-          style={({ pressed }) => [styles.profileButton, pressed && styles.pressed]}>
-          <Text style={styles.profileIcon}>{profile.initials}</Text>
-        </Pressable>
-      </View>
-
-      <View style={styles.searchContainer}>
-        <View style={styles.searchBar}>
-          <Text style={styles.searchIcon}>⌕</Text>
-          <TextInput
-            style={styles.searchInput}
-            placeholder={searchPlaceholder}
-            placeholderTextColor="#999999"
-          />
+        <View style={styles.titleCopy}>
+          <Text style={styles.brandTitle}>PokéVault TCG</Text>
+          {width >= 620 ? <Text style={styles.pageLabel}>{title}</Text> : null}
         </View>
+
+        {showSearch ? (
+          <View style={styles.searchBar}>
+            <MaterialCommunityIcons name="magnify" color={AppColors.mutedText} size={22} />
+            <TextInput
+              accessibilityLabel="Search catalog"
+              style={styles.searchInput}
+              placeholder={searchPlaceholder}
+              placeholderTextColor={AppColors.subtleText}
+            />
+          </View>
+        ) : (
+          <Pressable accessibilityLabel="Search" style={styles.iconButton}>
+            <MaterialCommunityIcons name="magnify" color={AppColors.mutedText} size={28} />
+          </Pressable>
+        )}
 
         {actionLabel ? (
           <Pressable
-            onPress={() => {
-              if (actionHref) {
-                router.push(actionHref);
-              }
-            }}
-            style={({ pressed }) => [styles.addButton, pressed && styles.pressed]}>
-            <Text style={styles.addButtonText}>{actionLabel}</Text>
+            onPress={() => actionHref && router.push(actionHref)}
+            style={({ pressed }) => [styles.actionButton, pressed && styles.pressed]}>
+            <MaterialCommunityIcons name="badge-account-outline" color={AppColors.primary} size={23} />
+            <View style={styles.notificationBadge}><Text style={styles.notificationText}>2</Text></View>
           </Pressable>
-        ) : null}
-
-        <Pressable style={({ pressed }) => [styles.filterButton, pressed && styles.pressed]}>
-          <Text style={styles.filterText}>{filterLabel} ▾</Text>
-        </Pressable>
+        ) : (
+          <Pressable onPress={() => router.push('/admin')} style={styles.profileButton}>
+            <MaterialCommunityIcons name="badge-account-outline" color={AppColors.primary} size={23} />
+          </Pressable>
+        )}
       </View>
+
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
-    backgroundColor: AppColors.card,
-    borderBottomColor: AppColors.border,
-    borderBottomWidth: 1,
-  },
-  header: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-  },
-  menuButton: {
-    alignItems: 'center',
-    height: 30,
-    justifyContent: 'center',
-    width: 30,
-  },
-  menuIcon: {
-    color: '#333333',
-    fontSize: 18,
-  },
-  headerTitle: {
-    color: AppColors.primary,
-    flex: 1,
-    fontSize: 20,
-    fontWeight: '700',
-    textAlign: 'center',
-  },
-  profileButton: {
-    alignItems: 'center',
-    backgroundColor: AppColors.primary,
-    borderRadius: 15,
-    height: 30,
-    justifyContent: 'center',
-    flexShrink: 0,
-    width: 30,
-  },
-  profileIcon: {
-    color: '#FFFFFF',
-    fontSize: 11,
-    fontWeight: '900',
-  },
-  searchContainer: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-  },
-  searchBar: {
-    alignItems: 'center',
-    backgroundColor: '#F4F5F7',
-    borderRadius: AppRadius.control,
-    flex: 1,
-    flexDirection: 'row',
-    minHeight: 44,
-    minWidth: 118,
-    paddingHorizontal: 12,
-  },
-  searchIcon: {
-    color: '#999999',
-    fontSize: 20,
-    marginRight: 8,
-  },
-  searchInput: {
-    color: AppColors.text,
-    flex: 1,
-    fontSize: 15,
-    minWidth: 0,
-    paddingVertical: 8,
-  },
-  addButton: {
-    alignItems: 'center',
-    backgroundColor: AppColors.primary,
-    borderRadius: AppRadius.control,
-    flexShrink: 0,
-    justifyContent: 'center',
-    minHeight: 44,
-    paddingHorizontal: 14,
-  },
-  addButtonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '800',
-  },
-  filterButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 44,
-    paddingHorizontal: 4,
-  },
-  filterText: {
-    color: AppColors.primary,
-    fontSize: 14,
-    fontWeight: '800',
-  },
-  pressed: {
-    opacity: 0.78,
-  },
+  wrapper: { backgroundColor: 'rgba(249,249,255,0.96)', shadowColor: '#24325A', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, zIndex: 20 },
+  header: { alignItems: 'center', alignSelf: 'center', flexDirection: 'row', gap: 10, maxWidth: 1120, minHeight: 72, paddingHorizontal: 20, paddingVertical: 10, width: '100%' },
+  brandMark: { alignItems: 'center', height: 40, justifyContent: 'center', width: 40 },
+  titleCopy: { flex: 1 },
+  brandTitle: { color: AppColors.primary, fontFamily: AppFonts.display, fontSize: 25, letterSpacing: -0.7 },
+  pageLabel: { color: AppColors.subtleText, fontFamily: AppFonts.bodyBold, fontSize: 9, letterSpacing: 1, textTransform: 'uppercase' },
+  iconButton: { alignItems: 'center', height: 44, justifyContent: 'center', width: 44 },
+  profileButton: { alignItems: 'center', height: 44, justifyContent: 'center', width: 44 },
+  actionButton: { alignItems: 'center', height: 44, justifyContent: 'center', position: 'relative', width: 44 },
+  notificationBadge: { alignItems: 'center', backgroundColor: AppColors.red, borderColor: '#FFFFFF', borderRadius: 11, borderWidth: 2, height: 22, justifyContent: 'center', position: 'absolute', right: -1, top: -2, width: 22 },
+  notificationText: { color: '#FFFFFF', fontFamily: AppFonts.bodyExtraBold, fontSize: 10 },
+  searchBar: { alignItems: 'center', backgroundColor: AppColors.softBlue, borderRadius: AppRadius.pill, flexDirection: 'row', gap: 8, maxWidth: 360, minHeight: 44, paddingHorizontal: 15, width: '38%' },
+  searchInput: { color: AppColors.text, flex: 1, fontFamily: AppFonts.bodyMedium, fontSize: 13, minWidth: 0, paddingVertical: 9 },
+  pressed: { opacity: 0.78, transform: [{ scale: 0.98 }] },
 });

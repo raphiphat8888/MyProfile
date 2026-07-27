@@ -2,7 +2,7 @@ import { createContext } from 'react';
 
 import type { Product } from '@/types/product';
 
-export type ProductsSource = 'fallback' | 'github';
+export type ProductsSource = 'cloud' | 'fallback' | 'github';
 
 export type ProductsContextValue = {
   products: Product[];

@@ -22,9 +22,9 @@ export function ProductsProvider({ children }: PropsWithChildren) {
     setError(null);
 
     try {
-      const data = await fetchProducts();
-      setProducts(data);
-      setSource('github');
+      const result = await fetchProducts();
+      setProducts(result.products);
+      setSource(result.source);
     } catch (caughtError) {
       setError(caughtError instanceof Error ? caughtError.message : 'โหลดสินค้าไม่สำเร็จ');
     } finally {

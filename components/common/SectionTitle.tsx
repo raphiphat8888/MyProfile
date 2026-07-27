@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { AppColors } from '@/constants/Colors';
+import { AppColors, AppFonts } from '@/constants/Colors';
 
 type SectionTitleProps = {
   eyebrow?: string;
@@ -20,24 +20,34 @@ export function SectionTitle({ eyebrow, title, description }: SectionTitleProps)
 
 const styles = StyleSheet.create({
   container: {
-    gap: 8,
+    gap: 7,
     marginBottom: 22,
   },
   eyebrow: {
-    color: AppColors.secondary,
-    fontSize: 13,
-    fontWeight: '800',
-    letterSpacing: 0.8,
+    alignSelf: 'flex-start',
+    backgroundColor: AppColors.yellow,
+    borderRadius: 999,
+    color: AppColors.text,
+    fontFamily: AppFonts.bodyExtraBold,
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 1,
+    overflow: 'hidden',
+    paddingHorizontal: 11,
+    paddingVertical: 6,
     textTransform: 'uppercase',
   },
   title: {
     color: AppColors.text,
-    fontSize: 30,
-    fontWeight: '900',
-    lineHeight: 36,
+    fontFamily: AppFonts.display,
+    fontSize: 32,
+    letterSpacing: -0.8,
+    lineHeight: 38,
+    marginTop: 5,
   },
   description: {
     color: AppColors.mutedText,
+    fontFamily: AppFonts.body,
     fontSize: 16,
     lineHeight: 24,
     maxWidth: 760,

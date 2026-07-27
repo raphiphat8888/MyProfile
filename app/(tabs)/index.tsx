@@ -1,199 +1,167 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import { Pressable, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import { FlatList, Pressable, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
-import { Button } from '@/components/common/Button';
-import { Card } from '@/components/common/Card';
 import { Header } from '@/components/common/Header';
-import { AppColors, AppRadius, AppSpacing } from '@/constants/Colors';
+import { PatternBackground } from '@/components/common/PatternBackground';
+import { ProjectCard } from '@/components/profile/ProjectCard';
+import { AppColors, AppFonts } from '@/constants/Colors';
 import { useProducts } from '@/hooks/use-products';
-import { useProfile } from '@/hooks/use-profile';
 
-type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
+const HERO_IMAGE = 'https://lh3.googleusercontent.com/aida-public/AB6AXuADRuf6s8wV1RLZuePVkU5FM63rLlt2B3vLuZ_LKfIO1VtVkimIQjeMc1qyeek9yR-y2cfHLEly3WN6pp6GLYVM3C2Sd4JxZCMtWrEc0jc5mZquOiFps-6iqCUq95ankUIw3hb5tiH2IrxlAChRJCz01hyL0zoYMDV_Pu-VSmH2KPrlTVaKe_UeSQzX3LbEA7umoiO-uuhNY7k1X0Cc7Voy7cx0q6yiLZAZoZ0eNLTO6xS3B-_dnqPfzFsOeQ6XJixkC6JnAMtUf3U';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { profile } = useProfile();
-  const { error, loading, products, refresh } = useProducts();
-  const { homeProductLimit, lowStockThreshold } = profile.settings;
-  const stockTotal = products.reduce((total, product) => total + product.stock, 0);
-  const lowStockTotal = products.filter(
-    (product) => product.stock <= lowStockThreshold,
-  ).length;
-  const categoryTotal = new Set(products.map((product) => product.category)).size;
-  const metrics: {
-    label: string;
-    value: string;
-    detail: string;
-    icon: IconName;
-    tone: string;
-    soft: string;
-  }[] = [
-    { label: 'สินค้าทั้งหมด', value: String(products.length), detail: 'รายการในแค็ตตาล็อก', icon: 'cards-outline', tone: '#2563EB', soft: '#EAF1FF' },
-    { label: 'สต็อกคงเหลือ', value: String(stockTotal), detail: 'ใบพร้อมจำหน่าย', icon: 'archive-outline', tone: '#087F8C', soft: '#E7F8F8' },
-    { label: 'สต็อกใกล้หมด', value: String(lowStockTotal), detail: 'ควรเติมสินค้า', icon: 'alert-circle-outline', tone: '#C56B16', soft: '#FFF4E5' },
-    { label: 'หมวดหมู่', value: String(categoryTotal), detail: 'กลุ่มสินค้า', icon: 'shape-outline', tone: '#B33965', soft: '#FCECF2' },
-  ];
+  const { width } = useWindowDimensions();
+  const { error, loading, products, refresh, source } = useProducts();
+  const [category, setCategory] = useState('All Items');
+  const columns = width >= 1080 ? 4 : 2;
+  const compact = width < 560;
+
+  const filters = useMemo(() => ['All Items', ...Array.from(new Set(products.map((product) => product.category)))], [products]);
+  const visibleProducts = category === 'All Items' ? products : products.filter((product) => product.category === category);
 
   return (
     <SafeAreaView style={styles.screen}>
+      <PatternBackground />
       <StatusBar barStyle="dark-content" backgroundColor={AppColors.background} />
-      <Header title="ภาพรวมร้าน" searchPlaceholder="ค้นหาการ์ดหรือสินค้า..." actionLabel="+ เพิ่ม" actionHref="/add" />
+      <Header title="Shop" searchPlaceholder="Search cards, sets..." actionLabel="Notifications" actionHref="/admin" />
 
-      <ScrollView style={styles.scroller} contentContainerStyle={styles.content}>
-        <View style={styles.pageHeading}>
-          <View style={styles.headingCopy}>
-            <Text style={styles.eyebrow}>RAPHI CARD SHOP</Text>
-            <Text style={styles.title}>แดชบอร์ดร้านค้า</Text>
-            <Text style={styles.subtitle}>เช็กสินค้าและสต็อกล่าสุดได้ในที่เดียว</Text>
-          </View>
-          <Pressable onPress={() => void refresh()} style={styles.dateBadge}>
-            <MaterialCommunityIcons name="calendar-blank-outline" size={18} color={AppColors.primary} />
-            <Text style={styles.dateText}>
-              {loading
-                ? 'กำลังอัปเดตข้อมูล...'
-                : error
-                  ? 'ใช้ข้อมูลสำรอง · แตะเพื่อลองใหม่'
-                  : 'ข้อมูลล่าสุดจาก GitHub'}
-            </Text>
-          </Pressable>
-        </View>
-
-        <View style={styles.metricGrid}>
-          {metrics.map((metric) => (
-            <Card key={metric.label} style={styles.metricCard}>
-              <View style={[styles.metricIcon, { backgroundColor: metric.soft }]}>
-                <MaterialCommunityIcons name={metric.icon} size={23} color={metric.tone} />
+      <FlatList
+        key={columns}
+        data={visibleProducts}
+        keyExtractor={(item) => item.id}
+        numColumns={columns}
+        columnWrapperStyle={styles.columns}
+        contentContainerStyle={[styles.content, compact && styles.contentCompact]}
+        refreshing={loading}
+        onRefresh={() => void refresh()}
+        renderItem={({ item }) => <View style={styles.cardSlot}><ProjectCard product={item} /></View>}
+        ItemSeparatorComponent={() => <View style={styles.rowGap} />}
+        ListHeaderComponent={
+          <View>
+            <View style={[styles.hero, compact && styles.heroCompact]}>
+              <Image source={{ uri: HERO_IMAGE }} style={StyleSheet.absoluteFill} contentFit="cover" />
+              <View style={styles.heroShade} />
+              <View style={styles.heroCopy}>
+                <Text style={[styles.heroTitle, compact && styles.heroTitleCompact]}>Scarlet &amp;{`\n`}Violet{`\n`}Expansion</Text>
+                <Text style={[styles.heroText, compact && styles.heroTextCompact]}>Discover the newest ultra-rare cards and complete your Paldea collection today.</Text>
+                <Pressable onPress={() => router.push('/projects')} style={styles.shopButton}>
+                  <Text style={styles.shopButtonText}>Shop Cards</Text>
+                </Pressable>
               </View>
-              <Text style={styles.metricLabel}>{metric.label}</Text>
-              <Text style={styles.metricValue}>{metric.value}</Text>
-              <Text style={styles.metricDetail}>{metric.detail}</Text>
-            </Card>
-          ))}
-        </View>
-
-        <View style={styles.dashboardGrid}>
-          <Card style={styles.inventoryPanel}>
-            <View style={styles.panelHeading}>
-              <View>
-                <Text style={styles.panelTitle}>ภาพรวมสต็อก</Text>
-                <Text style={styles.panelSubtitle}>จำนวนสินค้าคงเหลือแต่ละรายการ</Text>
-              </View>
-              <MaterialCommunityIcons name="chart-bar" size={22} color={AppColors.primary} />
             </View>
 
-            <View style={styles.stockList}>
-              {products.map((product) => {
-                const percentage = Math.max(8, Math.round((product.stock / Math.max(stockTotal, 1)) * 100));
-                const lowStock = product.stock <= lowStockThreshold;
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
+              {filters.map((filter) => {
+                const active = filter === category;
                 return (
-                  <View key={product.id} style={styles.stockRow}>
-                    <View style={styles.stockMeta}>
-                      <Text style={styles.stockName} numberOfLines={1}>{product.name}</Text>
-                      <Text style={[styles.stockCount, lowStock && styles.stockCountLow]}>{product.stock} ใบ</Text>
-                    </View>
-                    <View style={styles.track}>
-                      <View style={[styles.fill, lowStock && styles.fillLow, { width: `${percentage}%` }]} />
-                    </View>
-                  </View>
+                  <Pressable key={filter} onPress={() => setCategory(filter)} style={[styles.filterPill, active && styles.filterPillActive]}>
+                    <Text style={[styles.filterText, active && styles.filterTextActive]}>{filter}</Text>
+                  </Pressable>
                 );
               })}
-            </View>
-          </Card>
+            </ScrollView>
 
-          <Card style={styles.quickPanel}>
-            <Text style={styles.panelTitle}>ทำรายการด่วน</Text>
-            <Text style={styles.panelSubtitle}>ไปยังงานที่ใช้บ่อย</Text>
-            <View style={styles.quickActions}>
-              <Button label="เพิ่มสินค้าใหม่" onPress={() => router.push('/add')} />
-              <Button label="จัดการสินค้า" onPress={() => router.push('/admin')} variant="secondary" />
-              <Button label="ส่งออกข้อมูล" onPress={() => router.push('/export')} variant="secondary" />
-            </View>
-            <View style={styles.notice}>
-              <MaterialCommunityIcons name="lightbulb-outline" size={20} color="#9A5A12" />
-              <Text style={styles.noticeText}>มีสินค้า {lowStockTotal} รายการที่เหลือไม่เกิน {lowStockThreshold} ใบ</Text>
-            </View>
-          </Card>
-        </View>
+            <Pressable onPress={() => void refresh()} style={styles.sourceRow}>
+              <MaterialCommunityIcons name={error ? 'cloud-alert-outline' : 'cloud-check-outline'} color={error ? AppColors.secondary : AppColors.accent} size={18} />
+              <Text style={styles.sourceText}>{error ? 'Backup catalog · tap to retry' : source === 'cloud' ? 'Live inventory from Cloud MySQL' : 'Backup catalog is active'}</Text>
+            </Pressable>
 
-        <Card style={styles.recentPanel}>
-          <View style={styles.panelHeading}>
-            <View>
-              <Text style={styles.panelTitle}>สินค้าล่าสุด</Text>
-              <Text style={styles.panelSubtitle}>รายการที่กำลังแสดงในหน้าร้าน</Text>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, compact && styles.sectionTitleCompact]}>Trending Singles</Text>
+              <Pressable onPress={() => router.push('/all-products')} style={styles.viewAllBtn}>
+                <Text style={styles.viewAll}>View All</Text>
+                <MaterialCommunityIcons name="arrow-right" size={16} color={AppColors.primary} />
+              </Pressable>
             </View>
-            <Button label="ดูทั้งหมด" onPress={() => router.push('/projects')} variant="secondary" />
+            {/* Horizontal trending strip showing a few cards from the JSON */}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.trendingRow}>
+              {products
+                .filter((p) => p.category === 'Single Card')
+                .slice(0, 8)
+                .map((p) => {
+                  const price = ({ '1': 35, '2': 145, '3': 28, '4': 49 } as Record<string, number>)[p.id] ?? Math.max(12, p.stock * 4);
+                  return (
+                    <Pressable
+                      key={p.id}
+                      accessibilityRole="button"
+                      onPress={() => router.push({ pathname: '/product/[id]', params: { id: p.id } })}
+                      style={styles.trendingCard}
+                    >
+                      <Image source={{ uri: p.image_url }} style={styles.trendingImage} contentFit="contain" />
+                      <Text numberOfLines={2} style={styles.trendingName}>{p.name}</Text>
+                      <Text style={styles.trendingPrice}>${price.toFixed(2)}</Text>
+                    </Pressable>
+                  );
+                })}
+            </ScrollView>
           </View>
-          <View style={styles.productList}>
-            {products.slice(0, homeProductLimit).map((product) => (
-              <View key={product.id} style={styles.productRow}>
-                <View style={styles.thumbFrame}>
-                  <Image source={{ uri: product.image_url }} style={styles.thumb} contentFit="contain" />
-                </View>
-                <View style={styles.productInfo}>
-                  <Text style={styles.productName} numberOfLines={1}>{product.name}</Text>
-                  <Text style={styles.category}>{product.category}</Text>
-                </View>
-                <Text style={styles.price}>{product.location_text}</Text>
-                <View style={[styles.stockBadge, product.stock <= lowStockThreshold && styles.stockBadgeLow]}>
-                  <Text style={[styles.stockBadgeText, product.stock <= lowStockThreshold && styles.stockBadgeTextLow]}>คงเหลือ {product.stock}</Text>
-                </View>
-              </View>
-            ))}
+        }
+        ListEmptyComponent={
+          <View style={styles.emptyState}>
+            <MaterialCommunityIcons name="cards-outline" size={42} color={AppColors.primary} />
+            <Text style={styles.emptyTitle}>No cards in this set</Text>
+            <Text style={styles.emptyText}>Choose All Items to return to the full catalog.</Text>
           </View>
-        </Card>
-      </ScrollView>
+        }
+      />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { backgroundColor: AppColors.background, flex: 1 },
-  scroller: { flex: 1 },
-  content: { alignSelf: 'center', maxWidth: 1180, padding: AppSpacing.pageX, paddingBottom: 40, width: '100%' },
-  pageHeading: { alignItems: 'flex-end', flexDirection: 'row', flexWrap: 'wrap', gap: 16, justifyContent: 'space-between', marginBottom: 22 },
-  headingCopy: { flex: 1, minWidth: 250 },
-  eyebrow: { color: AppColors.primary, fontSize: 12, fontWeight: '900', marginBottom: 7 },
-  title: { color: AppColors.text, fontSize: 30, fontWeight: '900' },
-  subtitle: { color: AppColors.mutedText, fontSize: 15, marginTop: 6 },
-  dateBadge: { alignItems: 'center', backgroundColor: AppColors.softPurple, borderRadius: AppRadius.control, flexDirection: 'row', gap: 7, paddingHorizontal: 13, paddingVertical: 10 },
-  dateText: { color: AppColors.primaryDark, fontSize: 13, fontWeight: '800' },
-  metricGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: AppSpacing.cardGap },
-  metricCard: { flex: 1, minWidth: 205, padding: 18 },
-  metricIcon: { alignItems: 'center', borderRadius: 8, height: 42, justifyContent: 'center', marginBottom: 18, width: 42 },
-  metricLabel: { color: AppColors.mutedText, fontSize: 13, fontWeight: '700' },
-  metricValue: { color: AppColors.text, fontSize: 31, fontWeight: '900', marginTop: 3 },
-  metricDetail: { color: AppColors.subtleText, fontSize: 12, marginTop: 3 },
-  dashboardGrid: { alignItems: 'stretch', flexDirection: 'row', flexWrap: 'wrap', gap: AppSpacing.cardGap, marginTop: AppSpacing.cardGap },
-  inventoryPanel: { flex: 2, minWidth: 300 },
-  quickPanel: { flex: 1, minWidth: 270 },
-  panelHeading: { alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', gap: 12, justifyContent: 'space-between' },
-  panelTitle: { color: AppColors.text, fontSize: 18, fontWeight: '900' },
-  panelSubtitle: { color: AppColors.mutedText, fontSize: 13, marginTop: 4 },
-  stockList: { gap: 18, marginTop: 24 },
-  stockRow: { gap: 8 },
-  stockMeta: { alignItems: 'center', flexDirection: 'row', gap: 10, justifyContent: 'space-between' },
-  stockName: { color: AppColors.text, flex: 1, fontSize: 13, fontWeight: '800' },
-  stockCount: { color: AppColors.accent, fontSize: 12, fontWeight: '900' },
-  stockCountLow: { color: '#C56B16' },
-  track: { backgroundColor: '#EEF0F4', borderRadius: 4, height: 7, overflow: 'hidden' },
-  fill: { backgroundColor: AppColors.accent, borderRadius: 4, height: '100%' },
-  fillLow: { backgroundColor: '#E8A341' },
-  quickActions: { gap: 10, marginTop: 20 },
-  notice: { alignItems: 'flex-start', backgroundColor: '#FFF7E9', borderRadius: 8, flexDirection: 'row', gap: 9, marginTop: 18, padding: 12 },
-  noticeText: { color: '#7A4A13', flex: 1, fontSize: 12, fontWeight: '700', lineHeight: 18 },
-  recentPanel: { marginTop: AppSpacing.cardGap },
-  productList: { marginTop: 14 },
-  productRow: { alignItems: 'center', borderTopColor: AppColors.border, borderTopWidth: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 12, minHeight: 76, paddingVertical: 12 },
-  thumbFrame: { alignItems: 'center', backgroundColor: '#F4F5F7', borderRadius: 8, height: 52, justifyContent: 'center', width: 52 },
-  thumb: { height: 46, width: 34 },
-  productInfo: { flex: 1, minWidth: 150 },
-  productName: { color: AppColors.text, fontSize: 14, fontWeight: '900' },
-  category: { color: AppColors.mutedText, fontSize: 12, marginTop: 4 },
-  price: { color: AppColors.text, fontSize: 14, fontWeight: '900', minWidth: 82, textAlign: 'right' },
-  stockBadge: { backgroundColor: AppColors.softMint, borderRadius: AppRadius.pill, paddingHorizontal: 10, paddingVertical: 6 },
-  stockBadgeLow: { backgroundColor: '#FFF1DD' },
-  stockBadgeText: { color: AppColors.accent, fontSize: 11, fontWeight: '900' },
-  stockBadgeTextLow: { color: '#B35F12' },
+  content: { alignSelf: 'center', maxWidth: 1180, paddingBottom: 54, paddingHorizontal: 24, paddingTop: 18, width: '100%' },
+  contentCompact: { paddingHorizontal: 16 },
+  hero: { borderRadius: 46, height: 410, marginBottom: 60, overflow: 'hidden', position: 'relative' },
+  heroCompact: { height: 420, marginBottom: 52 },
+  heroShade: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(19,24,36,0.56)' },
+  heroCopy: { flex: 1, justifyContent: 'center', maxWidth: 620, padding: 46 },
+  heroTitle: { color: '#FFFFFF', fontFamily: AppFonts.display, fontSize: 58, letterSpacing: -2.2, lineHeight: 58 },
+  heroTitleCompact: { fontSize: 48, lineHeight: 48 },
+  heroText: { color: '#FFFFFF', fontFamily: AppFonts.bodyMedium, fontSize: 20, lineHeight: 30, marginTop: 24, maxWidth: 530 },
+  heroTextCompact: { fontSize: 16, lineHeight: 25, marginTop: 20 },
+  shopButton: { alignItems: 'center', alignSelf: 'flex-start', backgroundColor: AppColors.yellow, borderRadius: 999, marginTop: 24, minHeight: 48, paddingHorizontal: 26, paddingVertical: 13 },
+  shopButtonText: { color: AppColors.primaryDark, fontFamily: AppFonts.bodyBold, fontSize: 15 },
+  // Filter menu: horizontal, wrapping, compact pill buttons
+  filterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, paddingBottom: 18 },
+  filterPill: {
+    backgroundColor: AppColors.softBlue,
+    borderRadius: 999,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 36,
+  },
+  filterPillActive: {
+    backgroundColor: AppColors.yellow,
+    shadowColor: AppColors.yellow,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+  },
+  filterText: { color: AppColors.mutedText, fontFamily: AppFonts.bodyBold, fontSize: 16, textAlign: 'center' },
+  filterTextActive: { color: AppColors.primary },
+  sourceRow: { alignItems: 'center', alignSelf: 'flex-start', flexDirection: 'row', gap: 7, marginBottom: 36 },
+  sourceText: { color: AppColors.mutedText, fontFamily: AppFonts.bodyMedium, fontSize: 11 },
+  sectionHeader: { alignItems: 'flex-end', flexDirection: 'row', gap: 16, justifyContent: 'space-between', marginBottom: 24 },
+  sectionTitle: { color: AppColors.text, fontFamily: AppFonts.displayBold, fontSize: 34, letterSpacing: -0.8 },
+  sectionTitleCompact: { fontSize: 27 },
+  viewAll: { color: AppColors.primary, fontFamily: AppFonts.bodyBold, fontSize: 17 },
+  viewAllBtn: { alignItems: 'center', flexDirection: 'row', gap: 4 },
+  columns: { gap: 16 },
+  cardSlot: { flex: 1, minWidth: 0 },
+  rowGap: { height: 18 },
+  emptyState: { alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 28, gap: 8, padding: 30 },
+  emptyTitle: { color: AppColors.text, fontFamily: AppFonts.displayBold, fontSize: 22 },
+  emptyText: { color: AppColors.mutedText, fontFamily: AppFonts.body, fontSize: 13, textAlign: 'center' },
+  trendingRow: { paddingVertical: 10, gap: 12, paddingBottom: 28 },
+  trendingCard: { backgroundColor: '#FFFFFF', borderRadius: 20, borderWidth: 1, borderColor: '#E6EBF7', padding: 12, width: 180, marginRight: 12 },
+  trendingImage: { height: 110, width: '100%', marginBottom: 8 },
+  trendingName: { color: AppColors.text, fontFamily: AppFonts.displayBold, fontSize: 14, marginBottom: 6 },
+  trendingPrice: { color: AppColors.primary, fontFamily: AppFonts.bodyExtraBold, fontSize: 16 },
 });

@@ -3,64 +3,72 @@ import { Tabs } from 'expo-router';
 import React from 'react';
 
 import { HapticTab } from '@/components/haptic-tab';
-import { AppColors } from '@/constants/Colors';
-
+import { AppColors, AppFonts } from '@/constants/Colors';
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 
 function TabIcon({ icon, color }: { icon: IconName; color: string }) {
-  return <MaterialCommunityIcons name={icon} color={color} size={22} />;
+  return <MaterialCommunityIcons name={icon} color={color} size={23} />;
 }
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: AppColors.primary,
-        tabBarInactiveTintColor: '#667085',
+        tabBarActiveTintColor: '#FFFFFF',
+        tabBarInactiveTintColor: '#3D321C',
         tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '800',
+          fontFamily: AppFonts.bodyBold,
+          fontSize: 11,
+          letterSpacing: 0.5,
         },
         tabBarStyle: {
           backgroundColor: '#FFFFFF',
-          borderTopColor: AppColors.border,
-          borderTopWidth: 1,
-          height: 74,
-          paddingBottom: 10,
-          paddingTop: 8,
+          borderTopColor: 'transparent',
+          borderTopWidth: 0,
+          borderTopLeftRadius: 32,
+          borderTopRightRadius: 32,
+          height: 88,
+          paddingBottom: 13,
+          paddingTop: 9,
+          shadowColor: '#24325A',
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: 0.08,
+          shadowRadius: 18,
         },
+        tabBarActiveBackgroundColor: AppColors.red,
+        tabBarItemStyle: { borderRadius: 28, marginHorizontal: 5 },
         headerShown: false,
         tabBarButton: HapticTab,
       }}>
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <TabIcon icon="home-outline" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="add"
-        options={{
-          title: 'Add',
-          tabBarIcon: ({ color }) => <TabIcon icon="plus-circle-outline" color={color} />,
+          title: 'Shop',
+          tabBarIcon: ({ color }) => <TabIcon icon="pokeball" color={color} />,
         }}
       />
       <Tabs.Screen
         name="projects"
         options={{
-          title: 'Products',
-          tabBarIcon: ({ color }) => <TabIcon icon="cards-outline" color={color} />,
+          title: 'Chase List',
+          tabBarIcon: ({ color }) => <TabIcon icon="star-outline" color={color} />,
         }}
       />
       <Tabs.Screen
         name="categories"
         options={{
-          title: 'Categories',
-          tabBarIcon: ({ color }) => <TabIcon icon="shape-outline" color={color} />,
+          title: 'Cart',
+          tabBarIcon: ({ color }) => <TabIcon icon="shopping-outline" color={color} />,
         }}
       />
-      <Tabs.Screen name="admin" options={{ href: null }} />
+      <Tabs.Screen
+        name="admin"
+        options={{
+          title: 'Profile',
+          tabBarIcon: ({ color }) => <TabIcon icon="account-outline" color={color} />,
+        }}
+      />
+      <Tabs.Screen name="add" options={{ href: null }} />
       <Tabs.Screen name="export" options={{ href: null }} />
     </Tabs>
   );
