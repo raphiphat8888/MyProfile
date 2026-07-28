@@ -127,15 +127,15 @@ const styles = StyleSheet.create({
   shopButton: { alignItems: 'center', alignSelf: 'flex-start', backgroundColor: AppColors.yellow, borderRadius: 999, marginTop: 24, minHeight: 48, paddingHorizontal: 26, paddingVertical: 13 },
   shopButtonText: { color: AppColors.primaryDark, fontFamily: AppFonts.bodyBold, fontSize: 15 },
   // Filter menu: horizontal, wrapping, compact pill buttons
-  filterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, paddingBottom: 18 },
+  filterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, paddingVertical: 12, paddingHorizontal: 24 },
   filterPill: {
     backgroundColor: AppColors.softBlue,
     borderRadius: 999,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 36,
+    minHeight: 44,
   },
   filterPillActive: {
     backgroundColor: AppColors.yellow,

@@ -2,16 +2,17 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import {
-    FlatList,
-    Pressable,
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    useWindowDimensions,
-    View,
+  FlatList,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  Platform,
+  useWindowDimensions,
+  View,
 } from 'react-native';
 
 import { PatternBackground } from '@/components/common/PatternBackground';
@@ -73,7 +74,7 @@ export default function AllProductsScreen() {
             placeholderTextColor={AppColors.mutedText}
             value={query}
             onChangeText={setQuery}
-            style={styles.searchInput}
+            style={[styles.searchInput, webSearchInputStyle]}
             clearButtonMode="while-editing"
           />
           {query.length > 0 && (
@@ -192,8 +193,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: AppFonts.body,
     fontSize: 14,
-    // @ts-ignore web
-    outline: 'none',
   },
 
   /* filter pills */
@@ -201,17 +200,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
-    paddingBottom: 12,
+    paddingVertical: 12,
     paddingHorizontal: 24,
   },
   pill: {
     backgroundColor: AppColors.softBlue,
     borderRadius: 999,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 36,
+    minHeight: 44,
   },
   pillActive: {
     backgroundColor: AppColors.yellow,
@@ -220,7 +219,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.28,
     shadowRadius: 10,
   },
-  pillText: { color: AppColors.mutedText, fontFamily: AppFonts.bodyBold, fontSize: 14, textAlign: 'center' },
+  pillText: { color: AppColors.mutedText, fontFamily: AppFonts.bodyBold, fontSize: 15, textAlign: 'center' },
   pillTextActive: { color: AppColors.primary },
 
   /* grid */
@@ -248,3 +247,12 @@ const styles = StyleSheet.create({
   emptyTitle: { color: AppColors.text, fontFamily: AppFonts.displayBold, fontSize: 22 },
   emptyText: { color: AppColors.mutedText, fontFamily: AppFonts.body, fontSize: 13, textAlign: 'center' },
 });
+
+const webSearchInputStyle =
+  Platform.OS === 'web'
+    ? ({
+        outlineWidth: 0,
+        outlineStyle: 'none',
+        outlineColor: 'transparent',
+      } as const)
+    : null;
