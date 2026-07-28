@@ -38,6 +38,24 @@ export function isProducts(value: unknown): value is Product[] {
   return Array.isArray(value) && value.every(isProduct);
 }
 
+function dedupeProducts(products: Product[]): Product[] {
+  const seenUrls = new Set<string>();
+  const seenNames = new Set<string>();
+
+  return products.filter((product) => {
+    const urlKey = product.image_url.trim().toLowerCase();
+    const nameKey = product.name.trim().toLowerCase();
+
+    if (seenUrls.has(urlKey) || seenNames.has(nameKey)) {
+      return false;
+    }
+
+    seenUrls.add(urlKey);
+    seenNames.add(nameKey);
+    return true;
+  });
+}
+
 async function fetchProductsFrom(url: string, sourceName: string): Promise<Product[]> {
   const response = await fetch(`${url}?refresh=${Date.now()}`, {
     headers: { Accept: 'application/json' },
@@ -53,7 +71,7 @@ async function fetchProductsFrom(url: string, sourceName: string): Promise<Produ
     throw new Error(`รูปแบบ products.json จาก ${sourceName} ไม่ถูกต้อง`);
   }
 
-  return data;
+  return dedupeProducts(data);
 }
 
 export async function fetchProducts(): Promise<{

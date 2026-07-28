@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { AppColors, AppFonts } from '@/constants/Colors';
+import { PRODUCT_ASSETS, PRODUCT_IMAGE_FALLBACK } from '@/constants/product-assets';
 import type { Product } from '@/types/product';
 
 type ProjectCardProps = { product: Product };
@@ -17,17 +18,9 @@ export function ProjectCard({ product }: ProjectCardProps) {
   const isFire = /fire|charizard/i.test(`${product.category} ${product.name}`);
   const price = prices[product.id] ?? Math.max(12, product.stock * 4);
 
-  const localFallback = product.id === '1'
-    ? require('@/assets/images/image 13.png')
-    : product.id === '2'
-    ? require('@/assets/images/image 1.png')
-    : product.id === '4'
-    ? require('@/assets/images/V Card.png')
-    : require('@/assets/images/Basic Card.png');
-
   const imageSource = (!imageFailed && product.image_url && /^https?:\/\//i.test(product.image_url))
     ? { uri: product.image_url }
-    : localFallback;
+    : PRODUCT_ASSETS[product.id]?.hero ?? PRODUCT_IMAGE_FALLBACK;
 
   return (
     <Pressable

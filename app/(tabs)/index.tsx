@@ -5,12 +5,12 @@ import { useMemo, useState } from 'react';
 import { FlatList, Pressable, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { Header } from '@/components/common/Header';
+import { FeaturedPromoCarousel } from '@/components/home/FeaturedPromoCarousel';
 import { PatternBackground } from '@/components/common/PatternBackground';
 import { ProjectCard } from '@/components/profile/ProjectCard';
 import { AppColors, AppFonts } from '@/constants/Colors';
+import { FEATURED_PROMOS } from '@/constants/product-assets';
 import { useProducts } from '@/hooks/use-products';
-
-const HERO_IMAGE = 'https://lh3.googleusercontent.com/aida-public/AB6AXuADRuf6s8wV1RLZuePVkU5FM63rLlt2B3vLuZ_LKfIO1VtVkimIQjeMc1qyeek9yR-y2cfHLEly3WN6pp6GLYVM3C2Sd4JxZCMtWrEc0jc5mZquOiFps-6iqCUq95ankUIw3hb5tiH2IrxlAChRJCz01hyL0zoYMDV_Pu-VSmH2KPrlTVaKe_UeSQzX3LbEA7umoiO-uuhNY7k1X0Cc7Voy7cx0q6yiLZAZoZ0eNLTO6xS3B-_dnqPfzFsOeQ6XJixkC6JnAMtUf3U';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -43,13 +43,13 @@ export default function HomeScreen() {
         ListHeaderComponent={
           <View>
             <View style={[styles.hero, compact && styles.heroCompact]}>
-              <Image source={{ uri: HERO_IMAGE }} style={StyleSheet.absoluteFill} contentFit="cover" />
+              <Image source={FEATURED_PROMOS[0].image} style={StyleSheet.absoluteFill} contentFit="cover" />
               <View style={styles.heroShade} />
               <View style={styles.heroCopy}>
-                <Text style={[styles.heroTitle, compact && styles.heroTitleCompact]}>Scarlet &amp;{`\n`}Violet{`\n`}Expansion</Text>
-                <Text style={[styles.heroText, compact && styles.heroTextCompact]}>Discover the newest ultra-rare cards and complete your Paldea collection today.</Text>
+                <Text style={[styles.heroTitle, compact && styles.heroTitleCompact]}>Featured{`\n`}Pokémon{`\n`}Cards</Text>
+                <Text style={[styles.heroText, compact && styles.heroTextCompact]}>Swipe the promo cards, then tap any panel to jump straight into the detail view.</Text>
                 <Pressable onPress={() => router.push('/projects')} style={styles.shopButton}>
-                  <Text style={styles.shopButtonText}>Shop Cards</Text>
+                  <Text style={styles.shopButtonText}>Open Chase List</Text>
                 </Pressable>
               </View>
             </View>
@@ -69,6 +69,8 @@ export default function HomeScreen() {
               <MaterialCommunityIcons name={error ? 'cloud-alert-outline' : 'cloud-check-outline'} color={error ? AppColors.secondary : AppColors.accent} size={18} />
               <Text style={styles.sourceText}>{error ? 'Backup catalog · tap to retry' : source === 'cloud' ? 'Live inventory from Cloud MySQL' : 'Backup catalog is active'}</Text>
             </Pressable>
+
+            <FeaturedPromoCarousel />
 
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, compact && styles.sectionTitleCompact]}>Trending Singles</Text>

@@ -6,6 +6,7 @@ import { Pressable, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, useWi
 
 import { Button } from '@/components/common/Button';
 import { AppColors, AppFonts } from '@/constants/Colors';
+import { PRODUCT_ASSETS, PRODUCT_IMAGE_FALLBACK } from '@/constants/product-assets';
 import { useProducts } from '@/hooks/use-products';
 
 const prices: Record<string, number> = { '1': 35, '2': 145, '3': 28, '4': 49 };
@@ -31,16 +32,11 @@ export default function ProductDetailScreen() {
     { label: 'Moderately Played (MP)', note: 'Visible wear across the card', price: Math.round(basePrice * 0.58), available: false },
   ];
 
-  const localFallback =
-    product.id === '1' ? require('@/assets/images/image 13.png')
-    : product.id === '2' ? require('@/assets/images/image 1.png')
-    : product.id === '4' ? require('@/assets/images/V Card.png')
-    : require('@/assets/images/Basic Card.png');
-
   const imageSource =
     !imageFailed && product.image_url && /^https?:\/\//i.test(product.image_url)
       ? { uri: product.image_url }
-      : localFallback;
+      : PRODUCT_ASSETS[product.id]?.hero ?? PRODUCT_IMAGE_FALLBACK;
+  const gallery = PRODUCT_ASSETS[product.id]?.gallery ?? [imageSource, imageSource, imageSource];
 
   return (
     <SafeAreaView style={styles.screen}>
@@ -59,7 +55,7 @@ export default function ProductDetailScreen() {
               <View style={styles.cardFrame}><Image source={imageSource} style={styles.cardImage} contentFit="contain" onError={() => setImageFailed(true)} /></View>
             </View>
             <View style={styles.thumbnails}>
-              {[imageSource, imageSource, imageSource].map((source, index) => (
+              {gallery.map((source, index) => (
                 <View key={`${product.id}-${index}`} style={[styles.thumbnail, index === 0 && styles.thumbnailActive]}><Image source={source} style={styles.thumbnailImage} contentFit="contain" /></View>
               ))}
               <View style={styles.thumbnail}><MaterialCommunityIcons name="rotate-3d-variant" size={24} color={AppColors.text} /></View>
