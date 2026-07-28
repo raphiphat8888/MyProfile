@@ -1,8 +1,9 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Image } from 'expo-image';
 import { Link, useLocalSearchParams, useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Pressable, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import Animated, { Easing, Extrapolate, interpolate, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
 
 import { Button } from '@/components/common/Button';
 import { AppColors, AppFonts } from '@/constants/Colors';
@@ -20,6 +21,29 @@ export default function ProductDetailScreen() {
   const [condition, setCondition] = useState('Near Mint (NM)');
   const [imageFailed, setImageFailed] = useState(false);
   const compact = width < 760;
+  const flip = useSharedValue(0);
+
+  useEffect(() => {
+    flip.value = withRepeat(withTiming(1, { duration: 3200, easing: Easing.inOut(Easing.cubic) }), -1, false);
+  }, [flip]);
+
+  const frontCardStyle = useAnimatedStyle(() => {
+    const rotateY = interpolate(flip.value, [0, 0.5, 1], [0, 90, 180], Extrapolate.CLAMP);
+    const opacity = interpolate(flip.value, [0, 0.42, 0.58, 1], [1, 1, 0, 0], Extrapolate.CLAMP);
+    return {
+      opacity,
+      transform: [{ perspective: 1200 }, { rotateY: `${rotateY}deg` }],
+    };
+  });
+
+  const backCardStyle = useAnimatedStyle(() => {
+    const rotateY = interpolate(flip.value, [0, 0.5, 1], [180, 270, 360], Extrapolate.CLAMP);
+    const opacity = interpolate(flip.value, [0, 0.42, 0.58, 1], [0, 0, 1, 1], Extrapolate.CLAMP);
+    return {
+      opacity,
+      transform: [{ perspective: 1200 }, { rotateY: `${rotateY}deg` }],
+    };
+  });
 
   if (!product) {
     return <SafeAreaView style={styles.screen}><View style={styles.missing}><Text style={styles.title}>Card not found</Text><Button label="Back to Shop" onPress={() => router.replace('/')} /></View></SafeAreaView>;
@@ -52,7 +76,35 @@ export default function ProductDetailScreen() {
           <View style={styles.visualColumn}>
             <View style={styles.viewer}>
               <View style={styles.viewerGlow} />
-              <View style={styles.cardFrame}><Image source={imageSource} style={styles.cardImage} contentFit="contain" onError={() => setImageFailed(true)} /></View>
+              <View style={styles.flipStage}>
+                <Animated.View style={[styles.flipFace, styles.flipFront, frontCardStyle]}>
+                  <View style={styles.cardFrame}>
+                    <Image source={imageSource} style={styles.cardImage} contentFit="contain" onError={() => setImageFailed(true)} />
+                  </View>
+                </Animated.View>
+                <Animated.View style={[styles.flipFace, styles.flipBack, backCardStyle]}>
+                  <View style={styles.backCard}>
+                    <View style={styles.backPattern}>
+                      <View style={styles.backWaveLarge} />
+                      <View style={styles.backWaveSmall} />
+                      <View style={styles.backOrb} />
+                    </View>
+                    <View style={styles.backBadge}>
+                      <Text style={styles.backBadgeText}>POKEMON</Text>
+                    </View>
+                    <View style={styles.backCenter}>
+                      <View style={styles.backBallOuter}>
+                        <View style={styles.backBallTop} />
+                        <View style={styles.backBallBottom} />
+                        <View style={styles.backBallCenter} />
+                      </View>
+                    </View>
+                    <View style={styles.backBadgeBottom}>
+                      <Text style={styles.backBadgeText}>POKEMON</Text>
+                    </View>
+                  </View>
+                </Animated.View>
+              </View>
             </View>
             <View style={styles.thumbnails}>
               {gallery.map((source, index) => (
@@ -110,8 +162,135 @@ const styles = StyleSheet.create({
   visualColumn: { flex: 1, minWidth: 280 },
   viewer: { alignItems: 'center', backgroundColor: AppColors.softBlue, borderRadius: 44, height: 500, justifyContent: 'center', overflow: 'hidden', position: 'relative' },
   viewerGlow: { backgroundColor: '#FFF4BA', borderRadius: 220, height: 370, opacity: 0.35, position: 'absolute', right: -80, top: 120, width: 370 },
+  flipStage: {
+    alignItems: 'center',
+    height: '72%',
+    justifyContent: 'center',
+    position: 'relative',
+    width: '68%',
+  },
+  flipFace: {
+    backfaceVisibility: 'hidden',
+    height: '100%',
+    left: 0,
+    position: 'absolute',
+    top: 0,
+    width: '100%',
+  },
+  flipFront: {
+    zIndex: 2,
+  },
+  flipBack: {
+    zIndex: 1,
+  },
   cardFrame: { alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.72)', borderRadius: 30, height: '70%', justifyContent: 'center', padding: 18, shadowColor: '#24325A', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.14, shadowRadius: 20, width: '66%' },
   cardImage: { height: '100%', width: '100%' },
+  backCard: {
+    alignItems: 'center',
+    backgroundColor: '#1F2C63',
+    borderRadius: 28,
+    flex: 1,
+    justifyContent: 'space-between',
+    overflow: 'hidden',
+    paddingVertical: 18,
+    paddingHorizontal: 16,
+    shadowColor: '#24325A',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.18,
+    shadowRadius: 18,
+  },
+  backPattern: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.95,
+  },
+  backWaveLarge: {
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    borderRadius: 999,
+    height: 150,
+    left: '10%',
+    position: 'absolute',
+    top: '18%',
+    transform: [{ rotate: '-18deg' }],
+    width: '78%',
+  },
+  backWaveSmall: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 999,
+    height: 110,
+    left: '18%',
+    position: 'absolute',
+    top: '32%',
+    transform: [{ rotate: '22deg' }],
+    width: '64%',
+  },
+  backOrb: {
+    backgroundColor: 'rgba(255,255,255,0.14)',
+    borderRadius: 140,
+    bottom: '14%',
+    height: 110,
+    position: 'absolute',
+    right: '12%',
+    width: 110,
+  },
+  backBadge: {
+    alignItems: 'center',
+    paddingTop: 4,
+  },
+  backBadgeBottom: {
+    alignItems: 'center',
+    transform: [{ rotate: '180deg' }],
+  },
+  backBadgeText: {
+    color: '#FFD21F',
+    fontFamily: AppFonts.displayBold,
+    fontSize: 30,
+    letterSpacing: -0.8,
+    textShadowColor: '#17306f',
+    textShadowOffset: { width: 0, height: 3 },
+    textShadowRadius: 0,
+  },
+  backCenter: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+  },
+  backBallOuter: {
+    alignItems: 'center',
+    backgroundColor: '#E6E6E6',
+    borderColor: '#3B3B3B',
+    borderRadius: 999,
+    borderWidth: 4,
+    height: 140,
+    justifyContent: 'center',
+    position: 'relative',
+    width: 140,
+  },
+  backBallTop: {
+    backgroundColor: '#E64B2B',
+    borderTopLeftRadius: 70,
+    borderTopRightRadius: 70,
+    height: '48%',
+    position: 'absolute',
+    top: 0,
+    width: '100%',
+  },
+  backBallBottom: {
+    backgroundColor: '#F5F5F5',
+    bottom: 0,
+    borderBottomLeftRadius: 70,
+    borderBottomRightRadius: 70,
+    height: '48%',
+    position: 'absolute',
+    width: '100%',
+  },
+  backBallCenter: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#333333',
+    borderRadius: 999,
+    borderWidth: 5,
+    height: 38,
+    width: 38,
+  },
   thumbnails: { flexDirection: 'row', gap: 12, marginTop: 18 },
   thumbnail: { alignItems: 'center', backgroundColor: AppColors.softBlue, borderColor: '#D2C5AB', borderRadius: 20, borderWidth: 1, height: 72, justifyContent: 'center', overflow: 'hidden', width: 72 },
   thumbnailActive: { borderColor: AppColors.yellow, borderWidth: 2 },
