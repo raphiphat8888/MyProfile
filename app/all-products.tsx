@@ -11,6 +11,7 @@ import {
   Text,
   TextInput,
   Platform,
+  type TextInputProps,
   useWindowDimensions,
   View,
 } from 'react-native';
@@ -75,7 +76,7 @@ export default function AllProductsScreen() {
             value={query}
             onChangeText={setQuery}
             style={[styles.searchInput, webSearchInputStyle]}
-            clearButtonMode="while-editing"
+            {...clearButtonModeProps}
           />
           {query.length > 0 && (
             <Pressable onPress={() => setQuery('')} hitSlop={8}>
@@ -252,7 +253,12 @@ const webSearchInputStyle =
   Platform.OS === 'web'
     ? ({
         outlineWidth: 0,
-        outlineStyle: 'none',
+        outlineStyle: 'solid',
         outlineColor: 'transparent',
       } as const)
     : null;
+
+const clearButtonModeProps =
+  Platform.OS === 'ios'
+    ? ({ clearButtonMode: 'while-editing' } satisfies Pick<TextInputProps, 'clearButtonMode'>)
+    : {};
