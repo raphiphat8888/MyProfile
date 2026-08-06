@@ -10,7 +10,7 @@ const productSchema = z.object({
   stock: z.coerce.number().int().min(0).max(1000000),
   category: z.string().trim().min(1).max(100),
   location_count: z.coerce.number().int().min(0).max(1000000).default(0),
-  image_url: z.union([z.url().max(500), z.literal('')]).default(''),
+  image_url: z.string().trim().max(500).default(''),
 });
 
 const productUpdateSchema = productSchema.partial().refine(

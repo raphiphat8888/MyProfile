@@ -3,6 +3,7 @@ import { type Href, useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 
 import { AppColors, AppFonts, AppRadius } from '@/constants/Colors';
+import { useCart } from '@/hooks/use-cart';
 
 type HeaderProps = {
   title: string;
@@ -15,7 +16,10 @@ type HeaderProps = {
 export function Header({ title, searchPlaceholder, actionLabel, actionHref }: HeaderProps) {
   const router = useRouter();
   const { width } = useWindowDimensions();
+  const { totalItems } = useCart();
   const showSearch = width >= 760;
+  const isCartAction = actionLabel?.toLowerCase() === 'cart' || actionHref === '/cart' || actionHref === '/categories';
+  const actionIcon = isCartAction ? 'shopping-outline' : 'badge-account-outline';
 
   return (
     <View style={styles.wrapper}>
@@ -24,7 +28,7 @@ export function Header({ title, searchPlaceholder, actionLabel, actionHref }: He
           <MaterialCommunityIcons name="view-grid-outline" color={AppColors.primary} size={23} />
         </Pressable>
         <View style={styles.titleCopy}>
-          <Text style={styles.brandTitle}>PokéVault TCG</Text>
+          <Text style={styles.brandTitle}>Pokémon Takt Shop</Text>
           {width >= 620 ? <Text style={styles.pageLabel}>{title}</Text> : null}
         </View>
 
@@ -48,11 +52,11 @@ export function Header({ title, searchPlaceholder, actionLabel, actionHref }: He
           <Pressable
             onPress={() => actionHref && router.push(actionHref)}
             style={({ pressed }) => [styles.actionButton, pressed && styles.pressed]}>
-            <MaterialCommunityIcons name="badge-account-outline" color={AppColors.primary} size={23} />
-            <View style={styles.notificationBadge}><Text style={styles.notificationText}>2</Text></View>
+            <MaterialCommunityIcons name={actionIcon} color={AppColors.primary} size={23} />
+            {isCartAction && totalItems > 0 ? <View style={styles.notificationBadge}><Text style={styles.notificationText}>{totalItems > 99 ? '99+' : totalItems}</Text></View> : null}
           </Pressable>
         ) : (
-          <Pressable onPress={() => router.push('/admin')} style={styles.profileButton}>
+          <Pressable onPress={() => router.push('/profile')} style={styles.profileButton}>
             <MaterialCommunityIcons name="badge-account-outline" color={AppColors.primary} size={23} />
           </Pressable>
         )}

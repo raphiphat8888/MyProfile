@@ -2,8 +2,13 @@ import { fetch } from 'expo/fetch';
 
 import type { Profile, ProfileLink, SkillGroup } from '@/types/profile';
 
-export const PROFILE_URL =
-  'https://raw.githubusercontent.com/raphiphat8888/MyProfile/master/data/profile.json';
+export const CLOUD_API_URL = (
+  process.env.EXPO_PUBLIC_API_URL ?? 'http://119.59.102.161:3037'
+).replace(/\/$/, '');
+
+export const CLOUD_PROFILE_URL = `${CLOUD_API_URL}/api/profile`;
+export const PROFILE_URL = CLOUD_PROFILE_URL;
+export type ProfileRemoteSource = 'cloud';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
@@ -58,20 +63,23 @@ export function isProfile(value: unknown): value is Profile {
   );
 }
 
-export async function fetchProfile(): Promise<Profile> {
-  const response = await fetch(`${PROFILE_URL}?refresh=${Date.now()}`, {
+export async function fetchProfile(): Promise<{
+  profile: Profile;
+  source: ProfileRemoteSource;
+}> {
+  const response = await fetch(`${CLOUD_PROFILE_URL}?refresh=${Date.now()}`, {
     headers: { Accept: 'application/json' },
   });
 
   if (!response.ok) {
-    throw new Error(`โหลดข้อมูลจาก GitHub ไม่สำเร็จ (${response.status})`);
+    throw new Error(`Cloud profile API failed (${response.status})`);
   }
 
   const data: unknown = await response.json();
 
   if (!isProfile(data)) {
-    throw new Error('รูปแบบข้อมูล JSON จาก GitHub ไม่ถูกต้อง');
+    throw new Error('Cloud profile API returned an invalid profile shape');
   }
 
-  return data;
+  return { profile: data, source: 'cloud' };
 }

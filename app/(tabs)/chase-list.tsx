@@ -9,7 +9,7 @@ import { ProjectCard } from '@/components/profile/ProjectCard';
 import { AppColors, AppFonts } from '@/constants/Colors';
 import { useProducts } from '@/hooks/use-products';
 
-export default function ProjectsScreen() {
+export default function ChaseListScreen() {
   const { width } = useWindowDimensions();
   const { products, loading, refresh } = useProducts();
   const [query, setQuery] = useState('');
@@ -33,7 +33,7 @@ export default function ProjectsScreen() {
         `}} />
       )}
       <StatusBar barStyle="dark-content" backgroundColor={AppColors.background} />
-      <Header title="Chase List" searchPlaceholder="Search your chase list..." actionLabel="Profile" actionHref="/admin" />
+      <Header title="Chase List" searchPlaceholder="Search your chase list..." actionLabel="Cart" actionHref="/cart" />
       <FlatList
         key={columns}
         data={visible}
@@ -54,7 +54,7 @@ export default function ProjectsScreen() {
 
 const styles = StyleSheet.create({
   screen: { backgroundColor: AppColors.background, flex: 1 },
-  content: { alignSelf: 'center', maxWidth: 1180, padding: 24, paddingBottom: 54, width: '100%' },
+  content: { alignSelf: 'center', maxWidth: 1180, padding: 24, paddingBottom: Platform.OS === 'web' ? 112 : 54, width: '100%' },
   contentCompact: { paddingHorizontal: 16 },
   hero: { alignItems: 'center', backgroundColor: AppColors.softBlue, borderRadius: 36, flexDirection: 'row', gap: 18, padding: 26, overflow: 'visible', position: 'relative' },
   pokemon3D: { position: 'absolute', right: 10, bottom: -30, width: 140, height: 140, zIndex: 10 },

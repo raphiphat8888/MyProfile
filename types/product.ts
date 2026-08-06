@@ -3,6 +3,7 @@ export type ProductBadgeStatus = 'Active' | 'Low in stock';
 export type Product = {
   id: string;
   name: string;
+  price?: number;
   stock: number;
   stock_text: string;
   category: string;

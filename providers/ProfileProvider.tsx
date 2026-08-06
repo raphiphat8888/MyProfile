@@ -18,9 +18,9 @@ export function ProfileProvider({ children }: PropsWithChildren) {
     setError(null);
 
     try {
-      const remoteProfile = await fetchProfile();
-      setProfile(remoteProfile);
-      setSource('github');
+      const result = await fetchProfile();
+      setProfile(result.profile);
+      setSource(result.source);
     } catch (caughtError) {
       setError(caughtError instanceof Error ? caughtError.message : 'โหลดข้อมูลไม่สำเร็จ');
     } finally {

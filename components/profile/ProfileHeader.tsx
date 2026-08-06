@@ -6,7 +6,7 @@ import { Button } from '@/components/common/Button';
 import { AppColors, AppRadius } from '@/constants/Colors';
 import { useProfile } from '@/hooks/use-profile';
 
-const heroImageUrl = 'https://i.pinimg.com/originals/20/42/13/204213fb1069918be7f081a46a93f0af.jpg';
+const profileHeroImage = require('@/assets/images/profile-trainer-master.png');
 
 function HeroCardImage() {
   const [hovered, setHovered] = useState(false);
@@ -48,11 +48,10 @@ function HeroCardImage() {
             transform: [{ translateY }, { scale }, { rotate }],
           },
         ]}>
-        <Image source={{ uri: heroImageUrl }} style={styles.heroImage} contentFit="cover" />
-        <View style={styles.imageShade} />
+        <Image source={profileHeroImage} style={styles.heroImage} contentFit="cover" />
         <View style={styles.imageBadge}>
-          <Text style={styles.previewBadge}>Rare Pull</Text>
-          <Text style={styles.previewName}>Pokemon Cards</Text>
+          <Text style={styles.previewBadge}>Trainer Profile</Text>
+          <Text style={styles.previewName}>Card Master</Text>
         </View>
       </Animated.View>
     </Pressable>
@@ -71,7 +70,7 @@ export function ProfileHeader() {
         <Text style={styles.name}>{profile.name}</Text>
         <Text style={styles.intro}>{profile.intro}</Text>
         <View style={styles.actions}>
-          <Button label="Shop Cards" href="/projects" />
+          <Button label="Shop Cards" href="/" />
           <Button label="Admin Panel" href="/admin" variant="secondary" />
         </View>
       </View>
@@ -137,7 +136,9 @@ const styles = StyleSheet.create({
     zIndex: 4,
   },
   popCard: {
-    backgroundColor: '#2D2148',
+    backgroundColor: '#E9FCE1',
+    borderColor: AppColors.yellow,
+    borderWidth: 3,
     borderRadius: AppRadius.hero,
     height: '100%',
     overflow: 'hidden',
@@ -156,12 +157,6 @@ const styles = StyleSheet.create({
     height: '100%',
     width: '100%',
   },
-  imageShade: {
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
-    height: '100%',
-    position: 'absolute',
-    width: '100%',
-  },
   imageBadge: {
     bottom: 18,
     left: 18,
@@ -172,14 +167,14 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     backgroundColor: '#FFFFFF',
     borderRadius: AppRadius.pill,
-    color: AppColors.primary,
+    color: AppColors.accent,
     fontSize: 13,
     fontWeight: '900',
     paddingHorizontal: 12,
     paddingVertical: 7,
   },
   previewName: {
-    color: '#FFFFFF',
+    color: AppColors.primary,
     fontSize: 22,
     fontWeight: '900',
     marginTop: 8,

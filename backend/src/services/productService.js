@@ -27,6 +27,7 @@ function toProduct(row) {
   return {
     id: String(row.id),
     name: row.name,
+    price: Number(row.price),
     stock,
     stock_text: `${stock} in stock`,
     category: row.category || 'Uncategorized',

@@ -1,18 +1,26 @@
 import { fetch } from 'expo/fetch';
 
 import type { Product } from '@/types/product';
+import type { ProductCreateInput } from '@/contexts/products-context';
+import { LOCAL_EASTER_EGG_PRODUCT_IDS } from '@/constants/local-easter-eggs';
+import fallbackProducts from '@/products.json';
 
 export const CLOUD_API_URL = (
   process.env.EXPO_PUBLIC_API_URL ?? 'http://119.59.102.161:3037'
 ).replace(/\/$/, '');
 
 export const CLOUD_PRODUCTS_URL = `${CLOUD_API_URL}/api/products`;
-export const GITHUB_PRODUCTS_URL =
-  'https://raw.githubusercontent.com/raphiphat8888/MyProfile/master/products.json';
-export const PRODUCTS_URL = GITHUB_PRODUCTS_URL;
+export const PRODUCTS_URL = CLOUD_PRODUCTS_URL;
 
-export type ProductsRemoteSource = 'cloud' | 'github';
+export type ProductsRemoteSource = 'cloud' | 'fallback';
 
+const BLOCKED_PRODUCT_IDS = new Set(['39', '41', '42', '50', ...LOCAL_EASTER_EGG_PRODUCT_IDS]);
+const BLOCKED_PRODUCT_NAMES = new Set([
+  'ho-oh legend full',
+  'lucario vstar',
+  'origin palkia vstar',
+  'chien-pao ex alt art',
+]);
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
@@ -43,8 +51,13 @@ function dedupeProducts(products: Product[]): Product[] {
   const seenNames = new Set<string>();
 
   return products.filter((product) => {
+    const idKey = product.id.trim();
     const urlKey = product.image_url.trim().toLowerCase();
     const nameKey = product.name.trim().toLowerCase();
+
+    if (BLOCKED_PRODUCT_IDS.has(idKey) || BLOCKED_PRODUCT_NAMES.has(nameKey)) {
+      return false;
+    }
 
     if (seenUrls.has(urlKey) || seenNames.has(nameKey)) {
       return false;
@@ -78,19 +91,116 @@ export async function fetchProducts(): Promise<{
   products: Product[];
   source: ProductsRemoteSource;
 }> {
-  // ข้าม Cloud API ถ้าไม่ได้ตั้งค่า EXPO_PUBLIC_API_URL ไว้
-  // เพื่อหลีกเลี่ยง ERR_CONNECTION_REFUSED ที่ทำให้แอปช้า
-  if (process.env.EXPO_PUBLIC_API_URL) {
-    try {
-      const products = await fetchProductsFrom(CLOUD_PRODUCTS_URL, 'Cloud API');
-      return { products, source: 'cloud' };
-    } catch {
-      // Cloud API ไม่พร้อมใช้งาน → ใช้ GitHub แทน
-      console.warn('[products-api] Cloud API ไม่พร้อม ใช้ GitHub แทน');
+  try {
+    const products = await fetchProductsFrom(CLOUD_PRODUCTS_URL, 'Cloud API');
+    return { products, source: 'cloud' };
+  } catch {
+    if (!isProducts(fallbackProducts)) {
+      throw new Error('Local products.json is not valid');
     }
+
+    return { products: dedupeProducts(fallbackProducts), source: 'fallback' };
+  }
+}
+
+function getApiErrorMessage(data: unknown, fallback: string) {
+  if (isRecord(data)) {
+    const baseMessage = typeof data.error === 'string'
+      ? data.error
+      : typeof data.message === 'string'
+        ? data.message
+        : fallback;
+
+    if (Array.isArray(data.details)) {
+      const details = data.details
+        .map((detail) => {
+          if (!isRecord(detail)) {
+            return null;
+          }
+
+          const field = typeof detail.field === 'string' && detail.field.length > 0
+            ? detail.field
+            : 'field';
+          const message = typeof detail.message === 'string' ? detail.message : null;
+          return message ? `${field}: ${message}` : null;
+        })
+        .filter((detail): detail is string => Boolean(detail));
+
+      if (details.length > 0) {
+        return `${baseMessage}: ${details.join(', ')}`;
+      }
+    }
+
+    return baseMessage;
   }
 
-  // ใช้ GitHub เป็น primary source (ไม่มี EXPO_PUBLIC_API_URL หรือ Cloud ล้มเหลว)
-  const products = await fetchProductsFrom(GITHUB_PRODUCTS_URL, 'GitHub');
-  return { products, source: 'github' };
+  return fallback;
+}
+
+export async function createProduct(input: ProductCreateInput, token: string): Promise<Product> {
+  const response = await fetch(CLOUD_PRODUCTS_URL, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(input),
+  });
+
+  const data: unknown = await response.json();
+
+  if (!response.ok) {
+    throw new Error(getApiErrorMessage(data, `Create product failed (${response.status})`));
+  }
+
+  if (!isProduct(data)) {
+    throw new Error('Cloud API returned an invalid product shape');
+  }
+
+  return data;
+}
+
+export async function updateProduct(id: string, input: Partial<ProductCreateInput>, token: string): Promise<Product> {
+  const response = await fetch(`${CLOUD_PRODUCTS_URL}/${id}`, {
+    method: 'PUT',
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(input),
+  });
+
+  const data: unknown = await response.json();
+
+  if (!response.ok) {
+    throw new Error(getApiErrorMessage(data, `Update product failed (${response.status})`));
+  }
+
+  if (!isProduct(data)) {
+    throw new Error('Cloud API returned an invalid product shape');
+  }
+
+  return data;
+}
+
+export async function deleteProduct(id: string, token: string): Promise<void> {
+  const response = await fetch(`${CLOUD_PRODUCTS_URL}/${id}`, {
+    method: 'DELETE',
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    let data: unknown = null;
+    try {
+      data = await response.json();
+    } catch {
+      data = null;
+    }
+    throw new Error(getApiErrorMessage(data, `Delete product failed (${response.status})`));
+  }
 }

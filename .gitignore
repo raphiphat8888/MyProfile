@@ -1,59 +1,69 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+# Git ignore documentation:
+# https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
-# dependencies
+# Dependencies and package-manager state
 node_modules/
+.pnpm-store/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
-# Expo
+# Expo, Metro, and generated builds
 .expo/
 dist/
 web-build/
 expo-env.d.ts
-
-# Native
+.metro-health-check*
+/ios/
+/android/
 .kotlin/
+
+# Native signing credentials and merge artifacts
 *.orig.*
 *.jks
 *.p8
 *.p12
 *.key
+*.pem
 *.mobileprovision
 
-# Metro
-.metro-health-check*
-
-# debug
-npm-debug.*
-yarn-debug.*
-yarn-error.*
-backend/logs/
-backend/coverage/
-
-# macOS
-.DS_Store
-*.pem
-
-# local env files and secrets
+# Environment files and local secrets
 .env
 .env.*
 !.env.example
 
-# local tools
-.agents/
+# AI snapshots, temporary exports, and test artifacts
+/tmp-*
 tmp/
+*.tmp
+*.tmp.*
+*.snapshot.png
+*.test.png
+*.playwright.png
+*-snapshot.png
+*-screenshot.png
+.codex/
+.agents/
 
-# machine-specific editor settings
-.vscode/settings.json
+# Logs, coverage, and compiler caches
+*.log
+coverage/
+backend/logs/
+backend/coverage/
+*.tsbuildinfo
 
-# generated reports
+# Operating-system metadata
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDE and editor settings
+.idea/
+.vscode/*
+
+# Project-specific generated output
 output/
 docs/report-qa/
 docs/Raphiphat-Navigation-Report-QA.pdf
-
-# typescript
-*.tsbuildinfo
-
 app-example
-
-# generated native folders
-/ios
-/android

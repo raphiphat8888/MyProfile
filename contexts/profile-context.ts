@@ -2,7 +2,7 @@ import { createContext } from 'react';
 
 import type { Profile } from '@/types/profile';
 
-export type ProfileSource = 'fallback' | 'github';
+export type ProfileSource = 'fallback' | 'cloud';
 
 export type ProfileContextValue = {
   profile: Profile;

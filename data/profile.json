@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
-  "appName": "Raphi Card Shop",
-  "name": "Pokemon Card Market",
+  "appName": "Pokémon Takt Shop",
+  "name": "Pokémon Takt Shop",
   "role": "Trading Card Store",
   "initials": "RC",
   "intro": "Buy singles, booster packs, starter decks, and collector cards with clean photos, fair prices, and friendly service.",
   "education": "Pokemon card seller and collector",
-  "summary": "A small card shop for players and collectors who want authentic Pokemon cards, easy browsing, and quick contact before ordering.",
+  "summary": "Pokémon Takt Shop helps players and collectors browse authentic cards, check stock, and contact the shop before ordering.",
   "location": "Thailand",
   "email": {
     "label": "Order Email",

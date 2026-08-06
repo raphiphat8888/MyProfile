@@ -9,10 +9,14 @@ import { Header } from '@/components/common/Header';
 import { PatternBackground } from '@/components/common/PatternBackground';
 import { SectionTitle } from '@/components/common/SectionTitle';
 import { AppColors, AppFonts, AppSpacing } from '@/constants/Colors';
+import { useAuth } from '@/hooks/use-auth';
+import { useProducts } from '@/hooks/use-products';
 
 const categoryOptions = ['Single Card', 'Bundle', 'Sealed Pack', 'Deck'];
 
 export default function AddProductScreen() {
+  const auth = useAuth();
+  const { createProduct, refresh } = useProducts();
   const [name, setName] = useState('');
   const [stock, setStock] = useState('');
   const [category, setCategory] = useState('Single Card');
@@ -20,9 +24,17 @@ export default function AddProductScreen() {
   const [imageUrl, setImageUrl] = useState('');
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setSaved(false);
+    if (saving) {
+      return;
+    }
+    if (!auth.isAdmin || !auth.token) {
+      setError('Admin login is required before publishing to Cloud MySQL.');
+      return;
+    }
     if (!name.trim()) {
       setError('Give this product a name before preparing it.');
       return;
@@ -32,16 +44,46 @@ export default function AddProductScreen() {
       return;
     }
     setError('');
-    setSaved(true);
+    setSaving(true);
+    try {
+      await createProduct({
+        name: name.trim(),
+        stock: Number(stock),
+        category,
+        location_count: Number(locationCount) || 0,
+        image_url: imageUrl.trim(),
+      }, auth.token);
+      await refresh();
+      setSaved(true);
+      setName('');
+      setStock('');
+      setLocationCount('1');
+      setImageUrl('');
+      setCategory('Single Card');
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Publish failed. Please try again.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <SafeAreaView style={styles.screen}>
       <PatternBackground />
       <StatusBar barStyle="dark-content" backgroundColor={AppColors.background} />
-      <Header title="Add product" searchPlaceholder="Search before adding..." actionLabel="Products" actionHref="/projects" />
+      <Header title="Add product" searchPlaceholder="Search before adding..." actionLabel="Products" actionHref="/chase-list" />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <SectionTitle eyebrow="New discovery" title="Add a card to the shelf" description="Fill in the essentials now. Your draft stays on this screen until Admin publishing is connected." />
+        <SectionTitle eyebrow="Admin publishing" title="Add a card to Cloud MySQL" description="Only Store Officer accounts can publish new products to the live SQL catalog." />
+
+        {!auth.isAdmin ? (
+          <View style={styles.lockedCard}>
+            <MaterialCommunityIcons name="shield-lock-outline" color={AppColors.primary} size={34} />
+            <View style={styles.lockedCopy}>
+              <Text style={styles.lockedTitle}>Store Officer login required</Text>
+              <Text style={styles.lockedText}>Log in with an admin account from the Admin console before adding live products.</Text>
+            </View>
+          </View>
+        ) : null}
 
         <View style={styles.layout}>
           <Card style={styles.formCard}>
@@ -94,14 +136,14 @@ export default function AddProductScreen() {
             </View>
 
             <View style={styles.actions}>
-              <Button label="Prepare product" onPress={handleSave} />
-              <Button label="View products" href="/projects" variant="secondary" />
+              <Button label={saving ? 'Publishing...' : 'Publish to SQL'} onPress={() => void handleSave()} />
+              <Button label="View products" href="/chase-list" variant="secondary" />
             </View>
 
             {saved ? (
               <View style={styles.successBanner}>
                 <MaterialCommunityIcons name="check-decagram-outline" color={AppColors.text} size={22} />
-                <View style={styles.feedbackCopy}><Text style={styles.feedbackTitle}>Draft prepared!</Text><Text style={styles.feedbackText}>Admin login is required before this product can be published to Cloud MySQL.</Text></View>
+                <View style={styles.feedbackCopy}><Text style={styles.feedbackTitle}>Published to Cloud MySQL!</Text><Text style={styles.feedbackText}>The live catalog has been refreshed with the new product.</Text></View>
               </View>
             ) : null}
           </Card>
@@ -138,6 +180,10 @@ const styles = StyleSheet.create({
   screen: { backgroundColor: AppColors.background, flex: 1 },
   content: { alignSelf: 'center', maxWidth: 1080, padding: AppSpacing.pageX, paddingBottom: 36, width: '100%' },
   layout: { alignItems: 'flex-start', flexDirection: 'row', flexWrap: 'wrap', gap: 18 },
+  lockedCard: { alignItems: 'center', backgroundColor: '#FFFFFF', borderColor: '#DDE2F3', borderRadius: 24, borderWidth: 1, flexDirection: 'row', gap: 12, marginBottom: 18, padding: 16 },
+  lockedCopy: { flex: 1 },
+  lockedTitle: { color: AppColors.text, fontFamily: AppFonts.displayBold, fontSize: 18 },
+  lockedText: { color: AppColors.mutedText, fontFamily: AppFonts.bodyMedium, fontSize: 12, lineHeight: 18, marginTop: 3 },
   formCard: { backgroundColor: AppColors.softMint, flex: 2, gap: 15, minWidth: 300 },
   previewColumn: { flex: 1, gap: 16, minWidth: 270 },
   stepHeading: { alignItems: 'center', flexDirection: 'row', gap: 11, marginBottom: 2 },

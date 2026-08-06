@@ -6,6 +6,8 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { AppColors, AppFonts } from '@/constants/Colors';
 import { PRODUCT_ASSETS, PRODUCT_IMAGE_FALLBACK } from '@/constants/product-assets';
+import { useCart } from '@/hooks/use-cart';
+import { useProfile } from '@/hooks/use-profile';
 import type { Product } from '@/types/product';
 
 type ProjectCardProps = { product: Product };
@@ -14,9 +16,11 @@ const prices: Record<string, number> = { '1': 35, '2': 145, '3': 28, '4': 49 };
 
 export function ProjectCard({ product }: ProjectCardProps) {
   const router = useRouter();
+  const { addToCart } = useCart();
+  const { profile } = useProfile();
   const [imageFailed, setImageFailed] = useState(false);
   const isFire = /fire|charizard/i.test(`${product.category} ${product.name}`);
-  const price = prices[product.id] ?? Math.max(12, product.stock * 4);
+  const price = product.price ?? prices[product.id] ?? Math.max(12, product.stock * 4);
 
   const imageSource = (!imageFailed && product.image_url && /^https?:\/\//i.test(product.image_url))
     ? { uri: product.image_url }
@@ -52,10 +56,16 @@ export function ProjectCard({ product }: ProjectCardProps) {
             <Text style={styles.category} numberOfLines={2}>{product.category} · {product.stock} IN STOCK</Text>
             <Text style={styles.title} numberOfLines={2}>{product.name}</Text>
             <View style={styles.footer}>
-              <Text style={styles.price}>${price.toFixed(2)}</Text>
-              <View style={[styles.bagButton, isFire && styles.bagButtonFire]}>
+              <Text style={styles.price}>{profile.settings.currency} {price.toFixed(2)}</Text>
+              <Pressable
+                accessibilityLabel={`Add ${product.name} to cart`}
+                onPress={(event) => {
+                  event.stopPropagation();
+                  addToCart(product.id);
+                }}
+                style={[styles.bagButton, isFire && styles.bagButtonFire]}>
                 <MaterialCommunityIcons name="cart-plus" size={22} color={isFire ? AppColors.primary : AppColors.text} />
-              </View>
+              </Pressable>
             </View>
           </View>
         </>

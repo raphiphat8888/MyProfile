@@ -7,6 +7,7 @@ const { env } = require('./config/env');
 const { errorMiddleware, notFoundMiddleware } = require('./middlewares/errorMiddleware');
 const authRoutes = require('./routes/authRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
+const profileRoutes = require('./routes/profileRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const productRoutes = require('./routes/productRoutes');
 
@@ -57,6 +58,7 @@ function createApp() {
 
   app.use('/api/auth', authRoutes);
   app.use('/api/categories', categoryRoutes);
+  app.use('/api/profile', profileRoutes);
   app.use('/api/orders', orderRoutes);
   app.use('/api/products', productRoutes);
 
