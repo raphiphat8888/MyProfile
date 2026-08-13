@@ -10,6 +10,19 @@ type StoredSession = {
 };
 
 const STORAGE_KEY = 'pokemon-takt-shop-auth';
+const MOCK_ADMIN_EMAIL = 'admin@pokemon-takt.shop';
+const MOCK_ADMIN_PASSWORD = 'Admin@1234';
+const MOCK_ADMIN_TOKEN = 'mock-admin-token';
+
+const mockAdminSession: StoredSession = {
+  token: MOCK_ADMIN_TOKEN,
+  user: {
+    id: '1',
+    name: 'Takt Admin (Mock)',
+    email: MOCK_ADMIN_EMAIL,
+    role: 'admin',
+  },
+};
 
 function readStoredSession(): StoredSession | null {
   if (Platform.OS !== 'web' || typeof window === 'undefined') {
@@ -52,11 +65,27 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
-    const result = await loginToApi(email, password);
-    setToken(result.token);
-    setUser(result.user);
-    writeStoredSession(result);
-    return result.user;
+    try {
+      const result = await loginToApi(email, password);
+      setToken(result.token);
+      setUser(result.user);
+      writeStoredSession(result);
+      return result.user;
+    } catch (error) {
+      const canUseMockAdmin =
+        process.env.NODE_ENV !== 'production' &&
+        email.trim().toLowerCase() === MOCK_ADMIN_EMAIL &&
+        password === MOCK_ADMIN_PASSWORD;
+
+      if (!canUseMockAdmin) {
+        throw error;
+      }
+
+      setToken(mockAdminSession.token);
+      setUser(mockAdminSession.user);
+      writeStoredSession(mockAdminSession);
+      return mockAdminSession.user;
+    }
   }, []);
 
   const register = useCallback(async (name: string, email: string, password: string) => {

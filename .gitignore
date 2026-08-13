@@ -9,15 +9,15 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Expo, Metro, and generated builds
-.expo/
-dist/
-web-build/
-expo-env.d.ts
-.metro-health-check*
-/ios/
-/android/
-.kotlin/
+# Frontend - Expo, Metro, and generated builds
+frontend/.expo/
+frontend/dist/
+frontend/web-build/
+frontend/expo-env.d.ts
+frontend/.metro-health-check*
+frontend/ios/
+frontend/android/
+frontend/.kotlin/
 
 # Native signing credentials and merge artifacts
 *.orig.*
@@ -32,6 +32,8 @@ expo-env.d.ts
 .env
 .env.*
 !.env.example
+frontend/.env
+backend/.env
 
 # AI snapshots, temporary exports, and test artifacts
 /tmp-*

@@ -3,11 +3,11 @@ import { fetch } from 'expo/fetch';
 import { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  FlatList,
   Image,
   Modal,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -215,7 +215,8 @@ export default function AdminInventoryScreen() {
 
   return (
     <View style={styles.page}>
-      <View style={[styles.header, isMobile && styles.headerStack]}>
+      <ScrollView contentContainerStyle={styles.pageContent} style={styles.pageScroll}>
+        <View style={[styles.header, isMobile && styles.headerStack]}>
         <View style={styles.titleBlock}>
           <Text style={styles.eyebrow}>TCG store operations</Text>
           <Text style={styles.title}>Inventory</Text>
@@ -236,23 +237,23 @@ export default function AdminInventoryScreen() {
             <Text style={styles.primaryButtonText}>Add Product</Text>
           </Pressable>
         </View>
-      </View>
-
-      {error || message ? (
-        <View style={styles.notice}>
-          <Feather name={error ? 'alert-triangle' : 'info'} size={16} color={error ? adminColors.danger : adminColors.primary} />
-          <Text style={styles.noticeText}>{error ?? message}</Text>
         </View>
-      ) : null}
 
-      <View style={styles.metricGrid}>
-        <Metric label="Products" value={String(products.length)} icon="box" />
-        <Metric label="Total Stock" value={String(totalStock)} icon="layers" />
-        <Metric danger label="Low Stock" value={String(lowStockCount)} icon="alert-triangle" />
-        <Metric label="API Source" value={source === 'cloud' ? 'Live' : 'Local'} icon="database" />
-      </View>
+        {error || message ? (
+          <View style={styles.notice}>
+            <Feather name={error ? 'alert-triangle' : 'info'} size={16} color={error ? adminColors.danger : adminColors.primary} />
+            <Text style={styles.noticeText}>{error ?? message}</Text>
+          </View>
+        ) : null}
 
-      <View style={styles.tablePanel}>
+        <View style={styles.metricGrid}>
+          <Metric label="Products" value={String(products.length)} icon="box" />
+          <Metric label="Total Stock" value={String(totalStock)} icon="layers" />
+          <Metric danger label="Low Stock" value={String(lowStockCount)} icon="alert-triangle" />
+          <Metric label="API Source" value={source === 'cloud' ? 'Live' : 'Local'} icon="database" />
+        </View>
+
+        <View style={styles.tablePanel}>
         <View style={[styles.tableHeaderBar, isMobile && styles.headerStack]}>
           <View>
             <Text style={styles.sectionTitle}>Products</Text>
@@ -288,21 +289,20 @@ export default function AdminInventoryScreen() {
           </View>
         ) : null}
 
-        {loading ? (
-          <View style={styles.loadingBlock}>
-            <ActivityIndicator color={adminColors.primary} />
-            <Text style={styles.sectionHint}>Loading Cloud MySQL inventory...</Text>
-          </View>
-        ) : (
-          <FlatList
-            contentContainerStyle={styles.listContent}
-            data={filteredProducts}
-            keyExtractor={(item) => item.id}
-            renderItem={renderProduct}
-            showsVerticalScrollIndicator
-          />
-        )}
-      </View>
+          {loading ? (
+            <View style={styles.loadingBlock}>
+              <ActivityIndicator color={adminColors.primary} />
+              <Text style={styles.sectionHint}>Loading Cloud MySQL inventory...</Text>
+            </View>
+          ) : (
+            <View style={styles.listContent}>
+              {filteredProducts.map((item) => (
+                <View key={item.id}>{renderProduct({ item })}</View>
+              ))}
+            </View>
+          )}
+        </View>
+      </ScrollView>
 
       <ProductDrawer
         form={form}
@@ -633,7 +633,13 @@ const styles = StyleSheet.create({
   page: {
     backgroundColor: adminColors.background,
     flex: 1,
+  },
+  pageContent: {
     gap: adminSpacing.md,
+    paddingBottom: adminSpacing.md,
+  },
+  pageScroll: {
+    flex: 1,
   },
   primaryButton: {
     alignItems: 'center',
@@ -819,8 +825,6 @@ const styles = StyleSheet.create({
     borderColor: adminColors.border,
     borderRadius: adminRadius.card,
     borderWidth: 1,
-    flex: 1,
-    minHeight: 0,
     padding: adminSpacing.md,
   },
   tag: {
