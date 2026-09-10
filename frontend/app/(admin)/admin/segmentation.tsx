@@ -82,6 +82,11 @@ function money(value: number) {
   return `$${value.toFixed(2)}`;
 }
 
+function pricePosition(price: number, minimum: number, maximum: number) {
+  if (maximum <= minimum) return 50;
+  return ((price - minimum) / (maximum - minimum)) * 100;
+}
+
 export default function AdminSegmentationScreen() {
   const auth = useAuth();
   const { width } = useWindowDimensions();
@@ -158,6 +163,13 @@ export default function AdminSegmentationScreen() {
           </View>
           <View style={styles.panel}>
             <View style={styles.panelHeader}>
+              <View><Text style={styles.panelTitle}>K-Means price map</Text><Text style={styles.panelHint}>Each dot is a card. Dots are assigned to the nearest price centroid.</Text></View>
+              <Text style={styles.sourceBadge}>PRICE AXIS</Text>
+            </View>
+            <PriceClusterChart segments={segments} />
+          </View>
+          <View style={styles.panel}>
+            <View style={styles.panelHeader}>
               <View><Text style={styles.panelTitle}>Segment definition</Text><Text style={styles.panelHint}>Centroid is the average price in each cluster.</Text></View>
               <Text style={styles.sourceBadge}>LIVE DATA</Text>
             </View>
@@ -196,6 +208,43 @@ export default function AdminSegmentationScreen() {
         </>
       ) : null}
     </ScrollView>
+  );
+}
+
+function PriceClusterChart({ segments }: { segments: Segment[] }) {
+  const allPrices = segments.flatMap((segment) => segment.items.map((item) => item.price));
+  const minimum = Math.min(...allPrices, 0);
+  const maximum = Math.max(...allPrices, 1);
+  const ticks = [0, 0.25, 0.5, 0.75, 1].map((ratio) => minimum + (maximum - minimum) * ratio);
+
+  return (
+    <View style={styles.chart}>
+      <View style={styles.chartPlot}>
+        <View style={styles.chartAxis} />
+        {segments.map((segment) => (
+          <View key={segment.name} style={styles.chartRow}>
+            <View style={styles.chartLabel}><View style={styles.dot} /><Text style={styles.chartLabelText}>{segment.name}</Text></View>
+            <View style={styles.chartTrack}>
+              <View style={[styles.centroidLine, { left: `${pricePosition(segment.centroid, minimum, maximum)}%` }]} />
+              {segment.items.map((item, index) => (
+                <View
+                  key={item.product_id}
+                  style={[
+                    styles.priceDot,
+                    { left: `${pricePosition(item.price, minimum, maximum)}%`, top: index % 2 === 0 ? 7 : 25 },
+                  ]}
+                />
+              ))}
+            </View>
+            <Text style={styles.chartRange}>{money(segment.min)} - {money(segment.max)}</Text>
+          </View>
+        ))}
+        <View style={styles.chartTicks}>
+          {ticks.map((tick) => <Text key={tick} style={styles.tickText}>{money(tick)}</Text>)}
+        </View>
+      </View>
+      <View style={styles.chartLegend}><View style={styles.legendItem}><View style={styles.priceDotLegend} /><Text style={styles.legendText}>Card price</Text></View><View style={styles.legendItem}><View style={styles.centroidLegend} /><Text style={styles.legendText}>Centroid</Text></View></View>
+    </View>
   );
 }
 
@@ -255,4 +304,21 @@ const styles = StyleSheet.create({
   noticeText: { color: adminColors.danger, flex: 1, fontFamily: AppFonts.bodyBold, fontSize: 13 },
   loading: { alignItems: 'center', gap: 10, padding: adminSpacing.xl },
   loadingText: { color: adminColors.muted, fontFamily: AppFonts.bodyMedium, fontSize: 13 },
+  chart: { padding: adminSpacing.lg },
+  chartPlot: { minWidth: 680, paddingBottom: 30, position: 'relative' },
+  chartAxis: { backgroundColor: adminColors.border, bottom: 27, height: 1, left: 110, position: 'absolute', right: 105 },
+  chartRow: { alignItems: 'center', flexDirection: 'row', minHeight: 58 },
+  chartLabel: { alignItems: 'center', flexDirection: 'row', gap: 8, width: 100 },
+  chartLabelText: { color: adminColors.text, fontFamily: AppFonts.bodyBold, fontSize: 12 },
+  chartTrack: { backgroundColor: adminColors.slate100, borderRadius: 8, flex: 1, height: 40, position: 'relative' },
+  priceDot: { backgroundColor: adminColors.primary, borderColor: '#FFFFFF', borderRadius: 6, borderWidth: 1, height: 12, marginLeft: -6, position: 'absolute', width: 12 },
+  centroidLine: { backgroundColor: adminColors.danger, bottom: 3, position: 'absolute', top: 3, width: 2 },
+  chartRange: { color: adminColors.muted, fontFamily: AppFonts.bodyMedium, fontSize: 11, textAlign: 'right', width: 100 },
+  chartTicks: { flexDirection: 'row', justifyContent: 'space-between', marginLeft: 110, marginRight: 105, marginTop: 3 },
+  tickText: { color: adminColors.muted, fontFamily: AppFonts.bodyMedium, fontSize: 10 },
+  chartLegend: { flexDirection: 'row', gap: adminSpacing.lg, marginLeft: 100, marginTop: adminSpacing.md },
+  legendItem: { alignItems: 'center', flexDirection: 'row', gap: 6 },
+  legendText: { color: adminColors.muted, fontFamily: AppFonts.bodyMedium, fontSize: 11 },
+  priceDotLegend: { backgroundColor: adminColors.primary, borderRadius: 5, height: 10, width: 10 },
+  centroidLegend: { backgroundColor: adminColors.danger, height: 14, width: 2 },
 });
