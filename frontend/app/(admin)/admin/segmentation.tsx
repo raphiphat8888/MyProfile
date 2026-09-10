@@ -16,6 +16,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { fetchSegmentationProducts, type SegmentationProduct } from '@/services/segmentation-api';
 
 type Segment = {
+  color: string;
   centroid: number;
   items: SegmentationProduct[];
   max: number;
@@ -27,6 +28,21 @@ const segmentNames = {
   3: ['Economy', 'Standard', 'Premium'],
   4: ['Entry', 'Value', 'Core', 'Premium'],
 } as const;
+
+const clusterColors = ['#EF4444', '#2563EB', '#16A34A', '#F59E0B'];
+const centroidColor = '#FACC15';
+
+function colorForSegment(name: string) {
+  const colorsByName: Record<string, string> = {
+    Economy: clusterColors[0],
+    Standard: clusterColors[1],
+    Premium: clusterColors[2],
+    Entry: clusterColors[0],
+    Value: clusterColors[1],
+    Core: clusterColors[2],
+  };
+  return colorsByName[name] ?? clusterColors[0];
+}
 
 function strategyFor(segmentName: string) {
   if (segmentName === 'Premium') return 'Protect margin and highlight rarity.';
@@ -68,6 +84,7 @@ function runKMeans(products: SegmentationProduct[], clusterCount: number): Segme
 
   return groups
     .map((items, index) => ({
+      color: clusterColors[index % clusterColors.length],
       centroid: centroids[index],
       items,
       max: Math.max(...items.map((item) => item.price)),
@@ -175,7 +192,7 @@ export default function AdminSegmentationScreen() {
             </View>
             {segments.map((segment) => (
               <View key={segment.name} style={styles.row}>
-                <View style={styles.nameCell}><View style={styles.dot} /><View><Text style={styles.segmentName}>{segment.name}</Text><Text style={styles.itemCount}>{segment.items.length} cards</Text></View></View>
+                <View style={styles.nameCell}><View style={[styles.dot, { backgroundColor: segment.color }]} /><View><Text style={styles.segmentName}>{segment.name}</Text><Text style={styles.itemCount}>{segment.items.length} cards</Text></View></View>
                 <View style={styles.priceCell}><Text style={styles.range}>{money(segment.min)} - {money(segment.max)}</Text><Text style={styles.centroid}>Centroid {money(segment.centroid)}</Text></View>
                 <Text style={styles.strategy}>{strategyFor(segment.name)}</Text>
               </View>
@@ -197,7 +214,7 @@ export default function AdminSegmentationScreen() {
                 {productRows.map(({ centroid, product, segment }) => (
                   <View key={product.product_id} style={styles.tableRow}>
                     <View style={styles.cardColumn}><Text numberOfLines={1} style={styles.cardName}>{product.product_name}</Text><Text style={styles.cardId}>ID #{product.product_id}</Text></View>
-                    <View style={styles.clusterColumn}><Text style={styles.clusterBadge}>{segment}</Text></View>
+                    <View style={styles.clusterColumn}><Text style={[styles.clusterBadge, { backgroundColor: `${colorForSegment(segment)}22`, color: colorForSegment(segment) }]}>{segment}</Text></View>
                     <Text style={[styles.tableValue, styles.priceColumn]}>{money(product.price)}</Text>
                     <Text style={[styles.tableValue, styles.centroidColumn]}>{money(centroid)}</Text>
                   </View>
@@ -223,14 +240,15 @@ function PriceClusterChart({ segments }: { segments: Segment[] }) {
         <View style={styles.chartAxis} />
         {segments.map((segment) => (
           <View key={segment.name} style={styles.chartRow}>
-            <View style={styles.chartLabel}><View style={styles.dot} /><Text style={styles.chartLabelText}>{segment.name}</Text></View>
+            <View style={styles.chartLabel}><View style={[styles.dot, { backgroundColor: segment.color }]} /><Text style={styles.chartLabelText}>{segment.name}</Text></View>
             <View style={styles.chartTrack}>
-              <View style={[styles.centroidLine, { left: `${pricePosition(segment.centroid, minimum, maximum)}%` }]} />
+              <View style={[styles.centroidPoint, { backgroundColor: centroidColor, borderColor: segment.color, left: `${pricePosition(segment.centroid, minimum, maximum)}%` }]} />
               {segment.items.map((item, index) => (
                 <View
                   key={item.product_id}
                   style={[
                     styles.priceDot,
+                    { backgroundColor: segment.color },
                     { left: `${pricePosition(item.price, minimum, maximum)}%`, top: index % 2 === 0 ? 7 : 25 },
                   ]}
                 />
@@ -243,7 +261,7 @@ function PriceClusterChart({ segments }: { segments: Segment[] }) {
           {ticks.map((tick) => <Text key={tick} style={styles.tickText}>{money(tick)}</Text>)}
         </View>
       </View>
-      <View style={styles.chartLegend}><View style={styles.legendItem}><View style={styles.priceDotLegend} /><Text style={styles.legendText}>Card price</Text></View><View style={styles.legendItem}><View style={styles.centroidLegend} /><Text style={styles.legendText}>Centroid</Text></View></View>
+      <View style={styles.chartLegend}>{segments.map((segment) => <View key={segment.name} style={styles.legendItem}><View style={[styles.priceDotLegend, { backgroundColor: segment.color }]} /><Text style={styles.legendText}>{segment.name}</Text></View>)}<View style={styles.legendItem}><View style={styles.centroidLegend} /><Text style={styles.legendText}>Centroid</Text></View></View>
     </View>
   );
 }
@@ -311,8 +329,8 @@ const styles = StyleSheet.create({
   chartLabel: { alignItems: 'center', flexDirection: 'row', gap: 8, width: 100 },
   chartLabelText: { color: adminColors.text, fontFamily: AppFonts.bodyBold, fontSize: 12 },
   chartTrack: { backgroundColor: adminColors.slate100, borderRadius: 8, flex: 1, height: 40, position: 'relative' },
-  priceDot: { backgroundColor: adminColors.primary, borderColor: '#FFFFFF', borderRadius: 6, borderWidth: 1, height: 12, marginLeft: -6, position: 'absolute', width: 12 },
-  centroidLine: { backgroundColor: adminColors.danger, bottom: 3, position: 'absolute', top: 3, width: 2 },
+  priceDot: { borderColor: '#FFFFFF', borderRadius: 6, borderWidth: 1, height: 12, marginLeft: -6, position: 'absolute', width: 12 },
+  centroidPoint: { borderRadius: 11, borderWidth: 2, height: 22, marginLeft: -11, position: 'absolute', top: 9, width: 22 },
   chartRange: { color: adminColors.muted, fontFamily: AppFonts.bodyMedium, fontSize: 11, textAlign: 'right', width: 100 },
   chartTicks: { flexDirection: 'row', justifyContent: 'space-between', marginLeft: 110, marginRight: 105, marginTop: 3 },
   tickText: { color: adminColors.muted, fontFamily: AppFonts.bodyMedium, fontSize: 10 },
@@ -320,5 +338,5 @@ const styles = StyleSheet.create({
   legendItem: { alignItems: 'center', flexDirection: 'row', gap: 6 },
   legendText: { color: adminColors.muted, fontFamily: AppFonts.bodyMedium, fontSize: 11 },
   priceDotLegend: { backgroundColor: adminColors.primary, borderRadius: 5, height: 10, width: 10 },
-  centroidLegend: { backgroundColor: adminColors.danger, height: 14, width: 2 },
+  centroidLegend: { backgroundColor: centroidColor, borderColor: adminColors.text, borderRadius: 6, borderWidth: 1, height: 12, width: 12 },
 });
