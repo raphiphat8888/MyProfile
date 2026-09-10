@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "appName": "Pokémon Takt Shop",
+  "name": "Pokémon Takt Shop",
+  "role": "Trading Card Store",
+  "initials": "RC",
+  "intro": "Buy singles, booster packs, starter decks, and collector cards with clean photos, fair prices, and friendly service.",
+  "education": "Pokemon card seller and collector",
+  "summary": "Pokémon Takt Shop helps players and collectors browse authentic cards, check stock, and contact the shop before ordering.",
+  "location": "Thailand",
+  "email": {
+    "label": "Order Email",
+    "value": "raphiphat.s@ku.th",
+    "href": "mailto:raphiphat.s@ku.th"
+  },
+  "github": {
+    "label": "Card Catalog",
+    "value": "github.com/raphiphat8888",
+    "href": "https://github.com/raphiphat8888"
+  },
+  "facebook": {
+    "label": "Facebook Shop",
+    "value": "facebook.com/raphiphat8888",
+    "href": "https://facebook.com/raphiphat8888"
+  },
+  "phone": {
+    "label": "Phone / Line",
+    "value": "Add order phone",
+    "href": "tel:+66000000000"
+  },
+  "settings": {
+    "currency": "THB",
+    "lowStockThreshold": 5,
+    "homeProductLimit": 4
+  },
+  "skills": [
+    {
+      "title": "Single Cards",
+      "description": "Individual cards for collectors and deck builders.",
+      "skills": ["Pikachu", "Charizard", "Trainer", "Energy", "Holo"]
+    },
+    {
+      "title": "Sealed Products",
+      "description": "Fresh packs and boxes for opening or keeping sealed.",
+      "skills": ["Booster Pack", "Deck Box", "Promo Pack", "Gift Set"]
+    },
+    {
+      "title": "Card Condition",
+      "description": "Clear condition labels before every order.",
+      "skills": ["Near Mint", "Light Play", "Sleeved", "Top Loader"]
+    },
+    {
+      "title": "Shop Service",
+      "description": "Friendly support for choosing cards and confirming stock.",
+      "skills": ["Stock Check", "Card Photos", "Order Chat", "Delivery"]
+    }
+  ]
+}

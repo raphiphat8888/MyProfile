@@ -22,6 +22,10 @@ async function listProducts(_request, response) {
   response.json(await productService.listProducts());
 }
 
+async function getPriceSegmentationData(_request, response) {
+  response.json(await productService.getPriceSegmentationData());
+}
+
 async function getProduct(request, response) {
   const id = idSchema.parse(request.params.id);
   const row = await productService.getProductById(id);
@@ -49,6 +53,7 @@ module.exports = {
   createProduct,
   deleteProduct,
   getProduct,
+  getPriceSegmentationData,
   listProducts,
   updateProduct,
 };

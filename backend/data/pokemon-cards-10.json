@@ -1,0 +1,102 @@
+[
+  {
+    "id": "hgss4-1",
+    "name": "Aggron",
+    "number": "1",
+    "set_name": "HS—Triumphant",
+    "set_release_date": "2010/11/03",
+    "image_url": "https://images.pokemontcg.io/hgss4/1_hires.png",
+    "market_price_usd": 9.8,
+    "price_source": "TCGplayer market"
+  },
+  {
+    "id": "xy5-1",
+    "name": "Weedle",
+    "number": "1",
+    "set_name": "Primal Clash",
+    "set_release_date": "2015/02/04",
+    "image_url": "https://images.pokemontcg.io/xy5/1_hires.png",
+    "market_price_usd": 0.2,
+    "price_source": "TCGplayer market"
+  },
+  {
+    "id": "pl1-1",
+    "name": "Ampharos",
+    "number": "1",
+    "set_name": "Platinum",
+    "set_release_date": "2009/02/11",
+    "image_url": "https://images.pokemontcg.io/pl1/1_hires.png",
+    "market_price_usd": 32.84,
+    "price_source": "TCGplayer market"
+  },
+  {
+    "id": "dp3-1",
+    "name": "Ampharos",
+    "number": "1",
+    "set_name": "Secret Wonders",
+    "set_release_date": "2007/11/01",
+    "image_url": "https://images.pokemontcg.io/dp3/1_hires.png",
+    "market_price_usd": 42.56,
+    "price_source": "TCGplayer market"
+  },
+  {
+    "id": "det1-1",
+    "name": "Bulbasaur",
+    "number": "1",
+    "set_name": "Detective Pikachu",
+    "set_release_date": "2019/04/05",
+    "image_url": "https://images.pokemontcg.io/det1/1_hires.png",
+    "market_price_usd": 1.21,
+    "price_source": "TCGplayer market"
+  },
+  {
+    "id": "dv1-1",
+    "name": "Dratini",
+    "number": "1",
+    "set_name": "Dragon Vault",
+    "set_release_date": "2012/10/05",
+    "image_url": "https://images.pokemontcg.io/dv1/1_hires.png",
+    "market_price_usd": 4.35,
+    "price_source": "TCGplayer market"
+  },
+  {
+    "id": "mcd19-1",
+    "name": "Caterpie",
+    "number": "1",
+    "set_name": "McDonald's Collection 2019",
+    "set_release_date": "2019/10/15",
+    "image_url": "https://images.pokemontcg.io/mcd19/1_hires.png",
+    "market_price_usd": 14.7,
+    "price_source": "TCGplayer market"
+  },
+  {
+    "id": "pl3-1",
+    "name": "Absol G",
+    "number": "1",
+    "set_name": "Supreme Victors",
+    "set_release_date": "2009/08/19",
+    "image_url": "https://images.pokemontcg.io/pl3/1_hires.png",
+    "market_price_usd": 35.95,
+    "price_source": "TCGplayer market"
+  },
+  {
+    "id": "ex12-1",
+    "name": "Aerodactyl",
+    "number": "1",
+    "set_name": "Legend Maker",
+    "set_release_date": "2006/02/01",
+    "image_url": "https://images.pokemontcg.io/ex12/1_hires.png",
+    "market_price_usd": 79.6,
+    "price_source": "TCGplayer market"
+  },
+  {
+    "id": "ex3-1",
+    "name": "Absol",
+    "number": "1",
+    "set_name": "Dragon",
+    "set_release_date": "2003/11/24",
+    "image_url": "https://images.pokemontcg.io/ex3/1_hires.png",
+    "market_price_usd": 164.66,
+    "price_source": "TCGplayer market"
+  }
+]

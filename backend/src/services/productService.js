@@ -48,6 +48,37 @@ async function listProducts() {
   return rows.map(toProduct);
 }
 
+async function getPriceSegmentationData() {
+  const [rows] = await pool.query(
+    `SELECT
+       p.id AS product_id,
+       p.name AS product_name,
+       p.price,
+       NULL AS cost,
+       COALESCE(SUM(CASE WHEN o.status <> 'cancelled' THEN oi.quantity ELSE 0 END), 0)
+         AS cumulative_sales,
+       NULL AS discount_rate,
+       c.name AS category
+     FROM products p
+     LEFT JOIN categories c ON c.id = p.category_id
+     LEFT JOIN order_items oi ON oi.product_id = p.id
+     LEFT JOIN orders o ON o.id = oi.order_id
+     WHERE p.is_active = 1
+     GROUP BY p.id, p.name, p.price, c.name
+     ORDER BY p.price ASC, p.id ASC`,
+  );
+
+  return rows.map((row) => ({
+    product_id: String(row.product_id),
+    product_name: row.product_name,
+    price: Number(row.price),
+    cost: null,
+    cumulative_sales: Number(row.cumulative_sales),
+    discount_rate: null,
+    category: row.category || 'Uncategorized',
+  }));
+}
+
 async function getProductById(id, connection = pool) {
   const [rows] = await connection.execute(
     `${productSelect}
@@ -163,6 +194,7 @@ module.exports = {
   createProduct,
   deleteProduct,
   getProductById,
+  getPriceSegmentationData,
   listProducts,
   toProduct,
   updateProduct,

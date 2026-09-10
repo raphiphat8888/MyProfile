@@ -1,4 +1,4 @@
-const fallbackProfile = require('../../../data/profile.json');
+const fallbackProfile = require('../../data/profile.json');
 const { pool } = require('../config/db');
 
 const PROFILE_ID = 1;

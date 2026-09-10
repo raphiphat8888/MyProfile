@@ -1,8 +1,8 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { useMemo, useState, useEffect } from 'react';
+import { ActivityIndicator, Pressable, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 
 import { Button } from '@/components/common/Button';
 import { RotatingCardViewer } from '@/components/product/RotatingCardViewer';
@@ -12,6 +12,7 @@ import { LOCAL_EASTER_EGG_PRODUCTS } from '@/constants/local-easter-eggs';
 import { useProducts } from '@/hooks/use-products';
 import { useCart } from '@/hooks/use-cart';
 import { useProfile } from '@/hooks/use-profile';
+import { useAuth } from '@/hooks/use-auth';
 
 const prices: Record<string, number> = { '1': 35, '2': 145, '3': 28, '4': 49 };
 
@@ -19,9 +20,10 @@ export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { width } = useWindowDimensions();
-  const { error, loading, products, refresh } = useProducts();
+  const { error, loading, products, refresh, updateProduct } = useProducts();
   const { addToCart, totalItems } = useCart();
   const { profile } = useProfile();
+  const auth = useAuth();
   const productId = Array.isArray(id) ? id[0] : id;
   const localEasterEgg = productId ? LOCAL_EASTER_EGG_PRODUCTS[productId] : undefined;
   const product = useMemo(
@@ -32,6 +34,46 @@ export default function ProductDetailScreen() {
   const [imageFailed] = useState(false);
   const compact = width < 760;
   const isSpecialRare = productId === '999';
+
+  const [editStock, setEditStock] = useState('');
+  const [editPrice, setEditPrice] = useState('');
+  const [adminSaving, setAdminSaving] = useState(false);
+  const [adminMessage, setAdminMessage] = useState('');
+
+  useEffect(() => {
+    if (product) {
+      setEditStock(String(product.stock));
+      setEditPrice(String(product.price ?? prices[product.id] ?? Math.max(12, product.stock * 4)));
+    }
+  }, [product]);
+
+  const handleAdminSave = async () => {
+    if (!product || !auth.token) return;
+    setAdminSaving(true);
+    setAdminMessage('');
+    try {
+      await updateProduct(
+        product.id,
+        {
+          name: product.name,
+          category: product.category,
+          image_url: product.image_url,
+          location_count: product.location_count ?? 1,
+          description: product.description ?? '',
+          price: Number(editPrice),
+          stock: Number(editStock),
+        },
+        auth.token
+      );
+      setAdminMessage('✅ Product updated successfully!');
+      await refresh();
+    } catch (err) {
+      setAdminMessage(err instanceof Error ? err.message : 'Failed to update product');
+    } finally {
+      setAdminSaving(false);
+    }
+  };
+
   const addProductToCart = () => {
     if (product && !isSpecialRare) {
       addToCart(product.id);
@@ -172,6 +214,42 @@ export default function ProductDetailScreen() {
               <Button label={isSpecialRare ? 'Keep as Easter Egg' : 'Add to Trainer Bag'} onPress={isSpecialRare ? () => router.push('/chase-list') : addProductToCart} />
               <Button label="Add to Chase List" onPress={() => router.push('/chase-list')} variant="secondary" />
             </View>
+
+            {auth.isAdmin ? (
+              <View style={styles.adminBox}>
+                <View style={styles.adminHeader}>
+                  <MaterialCommunityIcons name="shield-account" size={20} color={AppColors.secondary} />
+                  <Text style={styles.adminTitle}>Admin Card Management</Text>
+                </View>
+                <View style={styles.adminFields}>
+                  <View style={styles.adminInputGroup}>
+                    <Text style={styles.adminInputLabel}>Stock</Text>
+                    <TextInput 
+                      style={styles.adminInput} 
+                      value={editStock} 
+                      onChangeText={setEditStock} 
+                      keyboardType="numeric"
+                    />
+                  </View>
+                </View>
+                {adminMessage ? <Text style={styles.adminMessage}>{adminMessage}</Text> : null}
+                <View style={styles.adminButtons}>
+                  <Pressable 
+                    onPress={handleAdminSave} 
+                    disabled={adminSaving}
+                    style={({ pressed }) => [styles.adminSaveBtn, pressed && styles.pressed, adminSaving && styles.disabled]}
+                  >
+                    {adminSaving ? <ActivityIndicator color="#FFFFFF" size="small" /> : <Text style={styles.adminSaveText}>Save Stock</Text>}
+                  </Pressable>
+                  <Pressable 
+                    onPress={() => router.push('/admin/inventory')} 
+                    style={({ pressed }) => [styles.adminConsoleBtn, pressed && styles.pressed]}
+                  >
+                    <Text style={styles.adminConsoleText}>Admin Console</Text>
+                  </Pressable>
+                </View>
+              </View>
+            ) : null}
           </View>
         </View>
       </ScrollView>
@@ -276,4 +354,91 @@ const styles = StyleSheet.create({
   actions: { gap: 14, marginTop: 26 },
   missing: { alignItems: 'center', flex: 1, gap: 20, justifyContent: 'center', padding: 24 },
   missingText: { color: AppColors.mutedText, fontFamily: AppFonts.bodyMedium, fontSize: 14, lineHeight: 20, maxWidth: 360, textAlign: 'center' },
+  adminBox: {
+    backgroundColor: '#FFFBEA',
+    borderColor: AppColors.yellow,
+    borderWidth: 2,
+    borderRadius: 24,
+    padding: 18,
+    marginTop: 28,
+  },
+  adminHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  adminTitle: {
+    color: AppColors.secondary,
+    fontFamily: AppFonts.displayBold,
+    fontSize: 16,
+  },
+  adminFields: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 12,
+  },
+  adminInputGroup: {
+    flex: 1,
+    gap: 4,
+  },
+  adminInputLabel: {
+    color: AppColors.mutedText,
+    fontFamily: AppFonts.bodyExtraBold,
+    fontSize: 10,
+    textTransform: 'uppercase',
+  },
+  adminInput: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#DDE2F3',
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontFamily: AppFonts.bodyMedium,
+    color: AppColors.text,
+    fontSize: 14,
+  },
+  adminMessage: {
+    color: AppColors.primary,
+    fontFamily: AppFonts.bodyBold,
+    fontSize: 12,
+    marginBottom: 12,
+  },
+  adminButtons: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  adminSaveBtn: {
+    flex: 1.4,
+    backgroundColor: AppColors.primary,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+  },
+  adminSaveText: {
+    color: '#FFFFFF',
+    fontFamily: AppFonts.bodyBold,
+    fontSize: 13,
+  },
+  adminConsoleBtn: {
+    flex: 1,
+    backgroundColor: AppColors.softBlue,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+  },
+  adminConsoleText: {
+    color: AppColors.accent,
+    fontFamily: AppFonts.bodyBold,
+    fontSize: 13,
+  },
+  disabled: {
+    opacity: 0.6,
+  },
+  pressed: {
+    opacity: 0.8,
+  },
 });

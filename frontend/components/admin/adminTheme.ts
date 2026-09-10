@@ -1,28 +1,30 @@
+import { AppColors, AppRadius } from '@/constants/Colors';
+
 export const adminColors = {
-  background: '#F8FAFC',
-  border: '#E2E8F0',
-  borderStrong: '#CBD5E1',
-  danger: '#DC2626',
-  dangerSoft: '#FEF2F2',
-  muted: '#64748B',
-  panel: '#FFFFFF',
-  primary: '#4F46E5',
-  primarySoft: '#EEF2FF',
-  sidebar: '#0F172A',
-  sidebarMuted: '#94A3B8',
-  sidebarPanel: '#1E293B',
-  slate100: '#F1F5F9',
-  slate200: '#E2E8F0',
-  slate700: '#334155',
-  text: '#0F172A',
-  warning: '#D97706',
-  warningSoft: '#FEF3C7',
+  background: AppColors.background,
+  border: '#DDE2F3',
+  borderStrong: AppColors.border,
+  danger: AppColors.secondary,
+  dangerSoft: '#FFF0F1',
+  muted: AppColors.subtleText,
+  panel: AppColors.card,
+  primary: AppColors.primary,
+  primarySoft: AppColors.softBlue,
+  sidebar: '#161C28',
+  sidebarMuted: AppColors.subtleText,
+  sidebarPanel: '#232B3F',
+  slate100: AppColors.backgroundAlt,
+  slate200: '#DDE2F3',
+  slate700: '#4E4632',
+  text: AppColors.text,
+  warning: AppColors.yellow,
+  warningSoft: '#FFFDE5',
 };
 
 export const adminRadius = {
-  control: 8,
-  card: 12,
-  panel: 16,
+  control: AppRadius.control,
+  card: AppRadius.card,
+  panel: AppRadius.card,
 };
 
 export const adminSpacing = {
@@ -35,8 +37,9 @@ export const adminSpacing = {
 
 export const adminShadow = {
   elevation: 2,
-  shadowColor: '#0F172A',
+  shadowColor: AppColors.shadow,
   shadowOffset: { width: 0, height: 8 },
-  shadowOpacity: 0.06,
+  shadowOpacity: 0.08,
   shadowRadius: 18,
 };
+

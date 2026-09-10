@@ -16,6 +16,8 @@ import {
   View,
 } from 'react-native';
 
+import { useRouter } from 'expo-router';
+
 import { adminColors, adminRadius, adminShadow, adminSpacing } from '@/components/admin/adminTheme';
 import { AppFonts } from '@/constants/Colors';
 import { PRODUCT_ASSETS, PRODUCT_IMAGE_FALLBACK } from '@/constants/product-assets';
@@ -92,6 +94,7 @@ async function fetchProductsWithJwt(token: string) {
 
 export default function AdminInventoryScreen() {
   const auth = useAuth();
+  const router = useRouter();
   const { width } = useWindowDimensions();
   const { createProduct, deleteProduct, error, loading, products, refresh, source, updateProduct } = useProducts();
   const [activeCategory, setActiveCategory] = useState('All');
@@ -189,19 +192,25 @@ export default function AdminInventoryScreen() {
 
   function renderProduct({ item }: { item: Product }) {
     return (
-      <Pressable onPress={() => openEditDrawer(item)} style={({ pressed }) => [styles.productRow, pressed && styles.rowPressed]}>
-        <View style={styles.productCell}>
+      <View style={styles.productRow}>
+        <Pressable 
+          onPress={() => router.push({ pathname: '/product/[id]', params: { id: item.id } })} 
+          style={({ pressed }) => [styles.productCell, pressed && styles.pressedCell]}
+        >
           <Image source={productImage(item)} resizeMode="contain" style={styles.productImage} />
           <View style={styles.productCopy}>
             <Text numberOfLines={1} style={styles.productName}>{item.name}</Text>
             <Text style={styles.productMeta}>ID #{item.id}</Text>
           </View>
-        </View>
+        </Pressable>
         {!isMobile ? <Text numberOfLines={1} style={styles.categoryText}>{item.category}</Text> : null}
         <View style={[styles.stockBadge, item.stock <= 2 && styles.stockBadgeLow]}>
           <Text style={[styles.stockText, item.stock <= 2 && styles.stockTextLow]}>{item.stock}</Text>
         </View>
         <View style={styles.rowActions}>
+          <Pressable onPress={() => router.push({ pathname: '/product/[id]', params: { id: item.id } })} style={styles.iconButton}>
+            <Feather name="eye" size={16} color={adminColors.primary} />
+          </Pressable>
           <Pressable onPress={() => openEditDrawer(item)} style={styles.iconButton}>
             <Feather name="edit-2" size={16} color={adminColors.primary} />
           </Pressable>
@@ -209,7 +218,7 @@ export default function AdminInventoryScreen() {
             <Feather name="trash-2" size={16} color={adminColors.danger} />
           </Pressable>
         </View>
-      </Pressable>
+      </View>
     );
   }
 
@@ -368,11 +377,10 @@ function ProductDrawer({
           <LabeledInput label="Card Name" onChangeText={(value) => setField('name', value)} placeholder="e.g. Mewtwo EX" value={form.name} />
           <View style={styles.formGrid}>
             <LabeledInput label="Category" onChangeText={(value) => setField('category', value)} value={form.category} />
-            <LabeledInput keyboardType="numeric" label="Price" onChangeText={(value) => setField('price', value)} value={form.price} />
+            <LabeledInput keyboardType="numeric" label="Stores" onChangeText={(value) => setField('location_count', value)} value={form.location_count} />
           </View>
           <View style={styles.formGrid}>
             <LabeledInput keyboardType="numeric" label="Stock" onChangeText={(value) => setField('stock', value)} value={form.stock} />
-            <LabeledInput keyboardType="numeric" label="Stores" onChangeText={(value) => setField('location_count', value)} value={form.location_count} />
           </View>
           <LabeledInput label="Image URL" onChangeText={(value) => setField('image_url', value)} value={form.image_url} />
           <LabeledInput label="Description" multiline onChangeText={(value) => setField('description', value)} placeholder="Short admin note..." value={form.description} />
@@ -712,6 +720,9 @@ const styles = StyleSheet.create({
   },
   rowPressed: {
     backgroundColor: adminColors.primarySoft,
+  },
+  pressedCell: {
+    opacity: 0.7,
   },
   searchBox: {
     alignItems: 'center',

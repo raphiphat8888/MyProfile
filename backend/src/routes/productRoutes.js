@@ -7,6 +7,12 @@ const { asyncHandler } = require('../utils/asyncHandler');
 const router = express.Router();
 
 router.get('/', asyncHandler(productController.listProducts));
+router.get(
+  '/segmentation-data',
+  authMiddleware,
+  requireRole('admin'),
+  asyncHandler(productController.getPriceSegmentationData),
+);
 router.get('/:id', asyncHandler(productController.getProduct));
 router.post(
   '/',
