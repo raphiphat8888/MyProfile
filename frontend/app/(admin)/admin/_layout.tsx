@@ -1,9 +1,9 @@
 import { Link, Redirect, Slot, usePathname } from 'expo-router';
-import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View, Pressable, useWindowDimensions, ScrollView } from 'react-native';
+import { ActivityIndicator, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
-import { PatternBackground } from '@/components/common/PatternBackground';
 import { adminColors, adminSpacing } from '@/components/admin/adminTheme';
-import { AppFonts, AppColors } from '@/constants/Colors';
+import { PatternBackground } from '@/components/common/PatternBackground';
+import { AppColors, AppFonts } from '@/constants/Colors';
 import { useAuth } from '@/hooks/use-auth';
 
 export default function AdminLayout() {

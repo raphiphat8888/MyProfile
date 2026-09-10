@@ -1,13 +1,13 @@
 import Feather from '@expo/vector-icons/Feather';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-  useWindowDimensions,
+    ActivityIndicator,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
+    useWindowDimensions,
 } from 'react-native';
 
 import { adminColors, adminRadius, adminShadow, adminSpacing } from '@/components/admin/adminTheme';
