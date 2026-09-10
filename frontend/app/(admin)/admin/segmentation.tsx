@@ -91,6 +91,11 @@ export default function AdminSegmentationScreen() {
   const [products, setProducts] = useState<SegmentationProduct[]>([]);
   const isMobile = width < 760;
   const segments = useMemo(() => runKMeans(products, clusterCount), [clusterCount, products]);
+  const productRows = useMemo(() => segments.flatMap((segment) => segment.items.map((product) => ({
+    centroid: segment.centroid,
+    product,
+    segment: segment.name,
+  }))), [segments]);
 
   const loadData = useCallback(async () => {
     if (!auth.token) {
@@ -164,6 +169,30 @@ export default function AdminSegmentationScreen() {
               </View>
             ))}
           </View>
+          <View style={styles.panel}>
+            <View style={styles.panelHeader}>
+              <View><Text style={styles.panelTitle}>Card-level results</Text><Text style={styles.panelHint}>Every live product assigned to its nearest price centroid.</Text></View>
+              <Text style={styles.sourceBadge}>{productRows.length} CARDS</Text>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View style={styles.table}>
+                <View style={styles.tableHeader}>
+                  <Text style={[styles.tableHeaderText, styles.cardColumn]}>CARD</Text>
+                  <Text style={[styles.tableHeaderText, styles.clusterColumn]}>CLUSTER</Text>
+                  <Text style={[styles.tableHeaderText, styles.priceColumn]}>PRICE</Text>
+                  <Text style={[styles.tableHeaderText, styles.centroidColumn]}>CENTROID</Text>
+                </View>
+                {productRows.map(({ centroid, product, segment }) => (
+                  <View key={product.product_id} style={styles.tableRow}>
+                    <View style={styles.cardColumn}><Text numberOfLines={1} style={styles.cardName}>{product.product_name}</Text><Text style={styles.cardId}>ID #{product.product_id}</Text></View>
+                    <View style={styles.clusterColumn}><Text style={styles.clusterBadge}>{segment}</Text></View>
+                    <Text style={[styles.tableValue, styles.priceColumn]}>{money(product.price)}</Text>
+                    <Text style={[styles.tableValue, styles.centroidColumn]}>{money(centroid)}</Text>
+                  </View>
+                ))}
+              </View>
+            </ScrollView>
+          </View>
         </>
       ) : null}
     </ScrollView>
@@ -210,6 +239,18 @@ const styles = StyleSheet.create({
   range: { color: adminColors.text, fontFamily: AppFonts.bodyBold, fontSize: 14 },
   centroid: { color: adminColors.primary, fontFamily: AppFonts.bodyMedium, fontSize: 11, marginTop: 3 },
   strategy: { color: adminColors.muted, flex: 1.6, fontFamily: AppFonts.bodyMedium, fontSize: 12, lineHeight: 18 },
+  table: { minWidth: 700, width: '100%' },
+  tableHeader: { alignItems: 'center', backgroundColor: adminColors.slate100, flexDirection: 'row', minHeight: 42, paddingHorizontal: adminSpacing.lg },
+  tableHeaderText: { color: adminColors.muted, fontFamily: AppFonts.bodyExtraBold, fontSize: 10, letterSpacing: 1 },
+  tableRow: { alignItems: 'center', borderBottomColor: adminColors.border, borderBottomWidth: 1, flexDirection: 'row', minHeight: 66, paddingHorizontal: adminSpacing.lg },
+  cardColumn: { width: 300 },
+  clusterColumn: { width: 150 },
+  priceColumn: { width: 120 },
+  centroidColumn: { width: 130 },
+  cardName: { color: adminColors.text, fontFamily: AppFonts.bodyBold, fontSize: 13 },
+  cardId: { color: adminColors.muted, fontFamily: AppFonts.bodyMedium, fontSize: 11, marginTop: 3 },
+  clusterBadge: { backgroundColor: adminColors.primarySoft, borderRadius: adminRadius.control, color: adminColors.primary, fontFamily: AppFonts.bodyBold, fontSize: 12, overflow: 'hidden', paddingHorizontal: 10, paddingVertical: 6 },
+  tableValue: { color: adminColors.text, fontFamily: AppFonts.bodyBold, fontSize: 13 },
   notice: { alignItems: 'center', backgroundColor: adminColors.dangerSoft, borderColor: '#FECACA', borderRadius: adminRadius.card, borderWidth: 1, flexDirection: 'row', gap: 9, padding: adminSpacing.md },
   noticeText: { color: adminColors.danger, flex: 1, fontFamily: AppFonts.bodyBold, fontSize: 13 },
   loading: { alignItems: 'center', gap: 10, padding: adminSpacing.xl },

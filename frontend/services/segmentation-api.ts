@@ -10,16 +10,25 @@ export type SegmentationProduct = {
 };
 
 export async function fetchSegmentationProducts(token: string): Promise<SegmentationProduct[]> {
-  const response = await fetch(`${CLOUD_API_URL}/api/products/segmentation-data?refresh=${Date.now()}`, {
+  const response = await fetch(`${CLOUD_API_URL}/api/products/segmentation-data`, {
     headers: {
       Accept: 'application/json',
       Authorization: `Bearer ${token}`,
     },
   });
 
-  const data: unknown = await response.json();
+  const responseText = await response.text();
+  let data: unknown = null;
+  try {
+    data = JSON.parse(responseText);
+  } catch {
+    data = null;
+  }
   if (!response.ok) {
-    throw new Error(`Segmentation data request failed (${response.status}).`);
+    const serverMessage = data && typeof data === 'object' && 'error' in data && typeof data.error === 'string'
+      ? data.error
+      : responseText.trim();
+    throw new Error(serverMessage || `Segmentation data request failed (${response.status}). Deploy the latest backend first.`);
   }
   if (!Array.isArray(data)) {
     throw new Error('Segmentation API returned an invalid product list.');

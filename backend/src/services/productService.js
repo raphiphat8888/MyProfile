@@ -55,16 +55,12 @@ async function getPriceSegmentationData() {
        p.name AS product_name,
        p.price,
        NULL AS cost,
-       COALESCE(SUM(CASE WHEN o.status <> 'cancelled' THEN oi.quantity ELSE 0 END), 0)
-         AS cumulative_sales,
+       0 AS cumulative_sales,
        NULL AS discount_rate,
        c.name AS category
      FROM products p
      LEFT JOIN categories c ON c.id = p.category_id
-     LEFT JOIN order_items oi ON oi.product_id = p.id
-     LEFT JOIN orders o ON o.id = oi.order_id
      WHERE p.is_active = 1
-     GROUP BY p.id, p.name, p.price, c.name
      ORDER BY p.price ASC, p.id ASC`,
   );
 
